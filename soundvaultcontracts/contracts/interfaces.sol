@@ -25,5 +25,10 @@ interface IERC721 {
     function ownerOf(uint256 id) external view returns (address owner);
     function balanceOf(address owner) external view returns (uint256);
     function transferFrom(address from,address to,uint256 id) external;
-    function mint(address investorAddr, string memory tokenURI, uint share) external;
+    function mint(address ownerAddr, string memory _tokenURI) external returns (uint256);
+}
+
+interface IFanNFTFactory {
+  function createFanToken(string memory _name, string memory _symbol) external returns (address);
+  function mint(address fanNFT, address to) external returns (uint256);
 }

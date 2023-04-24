@@ -15,6 +15,10 @@ contract User {
     // mapping to User
     mapping( address => user) public address2UserMapping;
 
+    constructor() {
+
+    }
+
     // get vote limit for user (equals to the sum of the purchase and vote)
     function getUserVoteLimit(address user) public view returns(uint){
         return address2UserMapping[user].purchase + address2UserMapping[user].vote;

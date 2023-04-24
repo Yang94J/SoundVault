@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 
 // Vault Token is used for platform Governance
 // Dont want to include 
-contract VaultNFT is ERC721, Owned{
+contract FanNFT is ERC721, Owned{
 
     using Counters for Counters.Counter;
     Counters.Counter private _tokenId;
@@ -39,6 +39,14 @@ contract VaultNFT is ERC721, Owned{
 
     function tokenURI(uint256 id) public view override returns (string memory){
         return tokenId2TokenURIMapping[id];
+    }
+
+    function transferFrom(
+        address from,
+        address to,
+        uint256 id
+    ) public override {
+        revert("Cant trade FanNFT");
     }
 
 }
