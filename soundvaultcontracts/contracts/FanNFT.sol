@@ -13,6 +13,7 @@ contract FanNFT is ERC721, Owned{
     Counters.Counter private _tokenId;
 
     mapping(uint => string) private tokenId2TokenURIMapping;
+    mapping(uint => uint) public tokenId2UserContributeMapping;
 
     constructor(string memory _name, string memory _symbol)
         ERC721(_name,_symbol)
@@ -48,5 +49,14 @@ contract FanNFT is ERC721, Owned{
     ) public override {
         revert("Cant trade FanNFT");
     }
+    
+    function update(uint256 tokenId, uint256 contributeToAdd)
+        public onlyOwner(){
+        tokenId2UserContributeMapping[tokenId] += contributeToAdd;
+    }
 
+    // For airdrop
+    function getFanNumber() public view returns(uint256){
+        return _tokenId.current();
+    }
 }

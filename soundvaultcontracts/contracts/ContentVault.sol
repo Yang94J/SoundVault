@@ -77,6 +77,8 @@ contract ContentVault is User{
     // music to buyer purchase amount, just for recording
     mapping(uint256 => mapping(address => uint256)) musicId2BuyerVoteAmountMapping;
 
+    mapping(address => mapping(address => bool)) author2userEligibleMapping;
+
     // LeaderBoard for musicPurchase List
     uint256[] musicPurchaseLeaderboard = new uint256[](LEADERBORAD_LENGTH);
     // LeaderBoard for musicVote List
@@ -143,6 +145,7 @@ contract ContentVault is User{
     function followMusician(address author) public{
         address authorFanNFT = address2UserMapping[author].fanNFT;
         require(authorFanNFT != address(0),"no nft available");
+        require(author2userEligibleMapping[author][msg.sender],"not eligible");
         require(IERC721(authorFanNFT).balanceOf(msg.sender)==0, "already fan");
         fanNFTFactory.mint(authorFanNFT, msg.sender);
         emit fanClubJoin(author, authorFanNFT, msg.sender);
@@ -162,9 +165,17 @@ contract ContentVault is User{
         musicId2BuyerAmountMapping[musicId][msg.sender] = amount;
         buyer2MusicIdMapping[msg.sender].push(musicId);
         address2UserMapping[msg.sender].purchase = address2UserMapping[msg.sender].purchase + amount;
-        
+
+        // verify eligble for airdrop
+        if (!author2userEligibleMapping[author][msg.sender]){
+            author2userEligibleMapping[author][msg.sender] = true;
+        }
+
         // for leaderboard
         updateMusicPurchase(musicId, amount,amountToPay);
+
+        // upgrade fan contributions
+        upgradeFanContribute(author,msg.sender,amount);
 
         emit musicPurchase(msg.sender, musicId, musicId2MusicMapping[musicId].musicName, amount);
     }
@@ -191,7 +202,10 @@ contract ContentVault is User{
         address2UserMapping[msg.sender].vote = address2UserMapping[msg.sender].vote + 1;
         musicId2BuyerVoteAmountMapping[musicId][msg.sender] = musicId2BuyerVoteAmountMapping[musicId][msg.sender] + amount;
 
+        // LeaderBoard Refresh
         updateMusicVote(musicId,amount,amountToPay);
+        // upgrade fan contributions
+        upgradeFanContribute(author,msg.sender,amount);
 
         emit musicVote(msg.sender, musicId, musicId2MusicMapping[musicId].musicName, amount);
     }
@@ -287,5 +301,12 @@ contract ContentVault is User{
             list[i] = musicVoteLeaderboard[i];
         }
         return list;
+    }
+
+    function upgradeFanContribute(address author,address fan,uint256 amount) internal{
+        address fanNFT = address2UserMapping[author].fanNFT;
+        if (fanNFT != address(0) && IERC721(fanNFT).balanceOf(fan)!=0){
+            fanNFTFactory.upgradeFanContribute(fanNFT, fan, amount);
+        }
     }
 }

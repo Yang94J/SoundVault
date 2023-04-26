@@ -31,4 +31,7 @@ interface IERC721 {
 interface IFanNFTFactory {
   function createFanToken(string memory _name, string memory _symbol) external returns (address);
   function mint(address fanNFT, address to) external returns (uint256);
+  function upgradeFanContribute(address fanNFT, address to, uint256 contributeToAdd) external;
+  function getFanNumber(address fanNFT) external view returns(uint256);
+  function getFanContribution(address fanNFT, address fan) external view returns(uint256);
 }
