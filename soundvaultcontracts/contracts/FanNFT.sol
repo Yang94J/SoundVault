@@ -5,8 +5,7 @@ import "solmate/src/tokens/ERC721.sol";
 import "solmate/src/auth/Owned.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
-// Vault Token is used for platform Governance
-// Dont want to include 
+// FanNFT is controlled by FanNFTFactory;
 contract FanNFT is ERC721, Owned{
 
     using Counters for Counters.Counter;
