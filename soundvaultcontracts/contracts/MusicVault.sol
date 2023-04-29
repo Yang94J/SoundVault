@@ -6,6 +6,5 @@ import "./FanVault.sol";
 contract MusicVault is FanVault {
     constructor(address _vaultToken, address _vaultNFT, address _factory) 
         FanVault(_vaultToken, _vaultNFT, _factory) {
-
     }
 }

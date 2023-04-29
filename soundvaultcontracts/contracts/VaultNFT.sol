@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "solmate/src/tokens/ERC721.sol";
 import "solmate/src/auth/Owned.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "hardhat/console.sol";
 
 // Vault Token is used for platform Governance
 // Dont want to include 
@@ -41,4 +42,7 @@ contract VaultNFT is ERC721, Owned{
         return tokenId2TokenURIMapping[id];
     }
 
+    function tokenNumber() public view returns (uint256){
+        return _tokenId.current();
+    }
 }

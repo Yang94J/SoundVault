@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import "./User.sol";
+import "./UserVault.sol";
 import "./interfaces.sol";
 
 // This contract is the content contract to do music-related interactions;
-contract ContentVault is User{
+contract ContentVault is UserVault{
 
     event musicUpload(address indexed musician, uint256 indexed musicId, string musicName );
     event musicPurchase(address indexed buyer, uint256 indexed musicId, string musicName, uint256 amount);
@@ -43,7 +43,7 @@ contract ContentVault is User{
     uint256 constant LEADERBORAD_LENGTH = 10;
 
     // for demo purpose, would set this to 0
-    // Would regard too much of tokenomics
+    // Wouldn't regard too much of tokenomics
     uint256 constant TAX = 0; 
 
     // vaultToken for governance and payment
@@ -55,6 +55,8 @@ contract ContentVault is User{
     // Factory to generate FanNFT based on requests
     // seperate to simplify the code
     IFanNFTFactory public fanNFTFactory;
+
+    address public tokenVaultWalletAddress;
 
     // musicId to Music struct
     mapping(uint256 => music) public musicId2MusicMapping;
@@ -72,18 +74,20 @@ contract ContentVault is User{
     mapping(address => uint256[]) public buyer2MusicIdMapping;
 
     // music to buyer purchase amount, just for recording
-    mapping(uint256 => mapping(address => uint256)) musicId2BuyerAmountMapping;
+    mapping(uint256 => mapping(address => uint256)) public musicId2BuyerAmountMapping;
 
     // music to buyer purchase amount, just for recording
-    mapping(uint256 => mapping(address => uint256)) musicId2BuyerVoteAmountMapping;
+    mapping(uint256 => mapping(address => uint256)) public musicId2BuyerVoteAmountMapping;
 
-    mapping(address => mapping(address => bool)) author2userEligibleMapping;
+    mapping(address => mapping(address => bool)) public author2userEligibleMapping;
 
     // LeaderBoard for musicPurchase List
-    uint256[] musicPurchaseLeaderboard = new uint256[](LEADERBORAD_LENGTH);
+    // uint256[] musicPurchaseLeaderboard = new uint256[](LEADERBORAD_LENGTH);
+    uint256[] musicPurchaseLeaderboard = new uint256[](0);
     // LeaderBoard for musicVote List
-    uint256[] musicVoteLeaderboard = new uint256[](LEADERBORAD_LENGTH);
-    
+    // uint256[] musicVoteLeaderboard = new uint256[](LEADERBORAD_LENGTH);
+    uint256[] musicVoteLeaderboard = new uint256[](0);
+
     // threshold to enter loop process
     uint256 thresholdForPurchase = 0;
     uint256 thresholdForVote = 0;
@@ -96,10 +100,11 @@ contract ContentVault is User{
     }
 
     // vaultToken, vaultNFT & 
-    constructor(address _vaultToken, address _vaultNFT, address _factory) User() {
+    constructor(address _vaultToken, address _vaultNFT, address _factory) UserVault() {
         vaultToken = IERC20(_vaultToken); 
         vaultNFT = IERC721(_vaultNFT); // should transfer Ownership after creation of platform
         fanNFTFactory = IFanNFTFactory(_factory); // should transfer Ownership after creation of platform
+        tokenVaultWalletAddress = msg.sender;
     }
 
     // Upload Music to Generate NFT
@@ -108,11 +113,11 @@ contract ContentVault is User{
                          string memory musicDescription,
                          uint256 contentHash,
                          uint256 purchaseFee,
-                         string memory tokenURI) public {
+                         string memory tokenURI) public returns(uint256){
         
         require(!contentUploadedMapping[contentHash],"already uploaded");
 
-        vaultToken.transferFrom(msg.sender, address(this), CREATE_BASE_FEE);
+        vaultToken.transferFrom(msg.sender, tokenVaultWalletAddress, CREATE_BASE_FEE);
         uint256 musicId = vaultNFT.mint(msg.sender, tokenURI);
 
         // init Vaule for music struct
@@ -128,7 +133,11 @@ contract ContentVault is User{
         owner2MusicIdMapping[msg.sender].push(musicId);
         contentUploadedMapping[musicId] =  true;
 
+        registerUser(msg.sender);
+
         emit musicUpload(msg.sender, musicId, musicName);
+
+        return musicId;
     }
 
     // FAN NFT create, triggered by user request
@@ -138,16 +147,19 @@ contract ContentVault is User{
         address2UserMapping[msg.sender].fanNFT = fanNFT;
         fanNFTFactory.mint(fanNFT, msg.sender);
 
+        registerUser(msg.sender);
+
         emit fanClubCreate(msg.sender, fanNFT);
     } 
 
     // follow to mint
     function followMusician(address author) public{
         address authorFanNFT = address2UserMapping[author].fanNFT;
-        require(authorFanNFT != address(0),"no nft available");
+        require(authorFanNFT != address(0),"no fanclub");
         require(author2userEligibleMapping[author][msg.sender],"not eligible");
         require(IERC721(authorFanNFT).balanceOf(msg.sender)==0, "already fan");
         fanNFTFactory.mint(authorFanNFT, msg.sender);
+        registerUser(msg.sender);
         emit fanClubJoin(author, authorFanNFT, msg.sender);
     }
 
@@ -176,6 +188,8 @@ contract ContentVault is User{
 
         // upgrade fan contributions
         upgradeFanContribute(author,msg.sender,amount);
+
+        registerUser(msg.sender);
 
         emit musicPurchase(msg.sender, musicId, musicId2MusicMapping[musicId].musicName, amount);
     }
@@ -207,6 +221,8 @@ contract ContentVault is User{
         // upgrade fan contributions
         upgradeFanContribute(author,msg.sender,amount);
 
+        registerUser(msg.sender);
+
         emit musicVote(msg.sender, musicId, musicId2MusicMapping[musicId].musicName, amount);
     }
 
@@ -223,6 +239,10 @@ contract ContentVault is User{
         musicId2MusicSellInfoMapping[musicId].purchaseAmount += amount;
         musicId2MusicSellInfoMapping[musicId].purchaseRevenue += amountToPay;
 
+        if (searchMusidIdinPurchaseLeaderboard(musicId)){
+            return;
+        }
+
         // if there is enough space for leaderboard
         if (musicPurchaseLeaderboard.length < LEADERBORAD_LENGTH){
             musicPurchaseLeaderboard.push(musicId);
@@ -233,6 +253,17 @@ contract ContentVault is User{
                 updateMusicPurchaseLeaderboard(musicId);
             }
         }
+    }
+
+    function searchMusidIdinPurchaseLeaderboard(uint musicId) view internal returns (bool){
+        uint len = musicPurchaseLeaderboard.length;
+        uint indMin = 0;
+        for (uint ind = 0; ind < len; ind++){
+            if (musicPurchaseLeaderboard[ind] == musicId){
+                return true;
+            }
+        }
+        return false;
     }
 
     // loop the leaderboard to see, if it will be updated?
@@ -258,6 +289,10 @@ contract ContentVault is User{
         musicId2MusicSellInfoMapping[musicId].voteAmount += amount;
         musicId2MusicSellInfoMapping[musicId].voteRevenue += amountToPay;
 
+        if (searchMusidIdinVoteLeaderboard(musicId)){
+            return;
+        }
+
         if (musicVoteLeaderboard.length < LEADERBORAD_LENGTH){
             musicVoteLeaderboard.push(musicId);
             emit leadBoardRefresh();
@@ -266,6 +301,17 @@ contract ContentVault is User{
                 updateMusicVoteLeaderboard(musicId);
             }
         }
+    }
+
+    function searchMusidIdinVoteLeaderboard(uint musicId) view internal returns (bool){
+        uint len = musicVoteLeaderboard.length;
+        uint indMin = 0;
+        for (uint ind = 0; ind < len; ind++){
+            if (musicVoteLeaderboard[ind] == musicId){
+                return true;
+            }
+        }
+        return false;
     }
 
     function updateMusicVoteLeaderboard(uint musicId) internal {
@@ -295,7 +341,7 @@ contract ContentVault is User{
     }
 
     // for leaderboard function
-    function getVoteLeaderBoard() public view returns (uint256[] memory list) {
+    function getVoteLeaderboard() public view returns (uint256[] memory list) {
         list = new uint256[](musicVoteLeaderboard.length);
         for (uint i = 0; i<list.length; i++){
             list[i] = musicVoteLeaderboard[i];
@@ -308,5 +354,38 @@ contract ContentVault is User{
         if (fanNFT != address(0) && IERC721(fanNFT).balanceOf(fan)!=0){
             fanNFTFactory.upgradeFanContribute(fanNFT, fan, amount);
         }
+    }
+
+    function registerUser(address _user) internal{
+        if (!address2IsUserMapping[_user]) {
+            address2IsUserMapping[_user] =  true;
+            userNumber += 1;
+        }
+    }
+
+    function getOwnerMusicNumber(address _user) public view returns(uint256){
+        return owner2MusicIdMapping[_user].length;
+    }
+
+    function getBuyerMusicNumber(address _user) public view returns(uint256){
+        return buyer2MusicIdMapping[_user].length;
+    }
+
+    function getOwneMusicIdList(address _user) public view returns(uint256[] memory){
+        uint256 len = getOwnerMusicNumber(_user);
+        uint256[] memory list = new uint256[](len);
+        for (uint i = 0; i < len; i++){
+            list[i] = owner2MusicIdMapping[_user][i];
+        }
+        return list;
+    }
+
+    function getBuyerMusicIdList(address _user) public view returns(uint256[] memory){
+        uint256 len = getBuyerMusicNumber(_user);
+        uint256[] memory list = new uint256[](len);
+        for (uint i = 0; i < len; i++){
+            list[i] = buyer2MusicIdMapping[_user][i];
+        }
+        return list;
     }
 }

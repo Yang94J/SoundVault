@@ -13,6 +13,7 @@ describe("FanNFT", function () {
         return { fanNFT, owner,alice };
     }
 
+    // start from 
     async function deployAndMintFixture(){
         const {fanNFT,owner,alice} = await loadFixture(deployFanNFTFixture);
         const tokenId = (await fanNFT.connect(owner).mint(alice.address,"test")).value;
@@ -35,7 +36,6 @@ describe("FanNFT", function () {
         it("mint by owner, success", async function(){
             const {fanNFT,owner,alice} = await loadFixture(deployFanNFTFixture);
             const tokenId = (await fanNFT.connect(owner).mint(alice.address,"test")).value;
-            console.log(tokenId);
             expect(await fanNFT.getFanNumber()).to.equal(1);
             expect(await fanNFT.ownerOf(tokenId)).to.equal(alice.address);
             expect(await fanNFT.tokenURI(tokenId)).to.equal("test");

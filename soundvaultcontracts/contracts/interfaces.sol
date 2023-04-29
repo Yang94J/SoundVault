@@ -1,24 +1,10 @@
 interface IERC20 {
-
   function totalSupply() external view returns (uint256);
-
   function balanceOf(address owner) external view returns (uint256);
-
-  function allowance(address owner, address spender)
-  external
-  view
-  returns (uint256);
-
+  function allowance(address owner, address spender) external view returns (uint256);
   function approve(address spender, uint256 value) external returns (bool);
-
   function transfer(address to, uint256 value) external returns (bool);
-
-  function transferFrom(
-    address from,
-    address to,
-    uint256 value
-  ) external returns (bool);
-
+  function transferFrom(address from,address to,uint256 value) external returns (bool);
 }
 
 interface IERC721 {
@@ -26,6 +12,7 @@ interface IERC721 {
     function balanceOf(address owner) external view returns (uint256);
     function transferFrom(address from,address to,uint256 id) external;
     function mint(address ownerAddr, string memory _tokenURI) external returns (uint256);
+    function tokenNumber() external view returns (uint256);
 }
 
 interface IFanNFTFactory {

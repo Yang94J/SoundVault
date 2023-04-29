@@ -20,10 +20,12 @@ contract FanVault is ContentVault {
     }
 
     function donateToAuthor(address author, uint256 amount) public{
-        require(DONATION_INTERVAL + donation2BlockMapping[msg.sender] > block.number, "donation freezing time");
+        console.log("blocknum %d",block.number);
+        require(donation2BlockMapping[msg.sender]==0 ||  DONATION_INTERVAL + donation2BlockMapping[msg.sender] <  block.number, "donation freezing time");
         address fanNFT = address2UserMapping[author].fanNFT;
         require(fanNFT != address(0) && IERC721(fanNFT).balanceOf(msg.sender)!=0,"fan needed");
         require(amount >= DONATION_BASE_FEE, "unqualified amount");
+        donation2BlockMapping[msg.sender] = block.number;
         vaultToken.transferFrom(msg.sender, author, amount);
         fanNFTFactory.upgradeFanContribute(fanNFT, msg.sender, amount / DONATION_BASE_FEE);
         emit donate(author, msg.sender, amount);
@@ -44,5 +46,15 @@ contract FanVault is ContentVault {
             }
 
         }
+    }
+
+    function getFanNumber(address _user) public view returns (uint256){
+        require(address2UserMapping[_user].fanNFT != address(0),"no fanclub");
+        return fanNFTFactory.getFanNumber(address2UserMapping[_user].fanNFT);
+    }
+
+    function getFanContribution(address _author, address _fan) public view returns (uint256){
+        require(address2UserMapping[_author].fanNFT != address(0),"no fanclub");
+        return fanNFTFactory.getFanContribution(address2UserMapping[_author].fanNFT, _fan);
     }
 }

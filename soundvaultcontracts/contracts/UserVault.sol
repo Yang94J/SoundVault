@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
+import "hardhat/console.sol";
+
 // This contract is the base contract to store user-related Information;
-contract User {
+contract UserVault {
 
     // user struct
     // make it simple
@@ -14,6 +16,10 @@ contract User {
 
     // user address mapping to User
     mapping( address => user) public address2UserMapping;
+    
+    uint256 public userNumber;
+
+    mapping( address => bool) public address2IsUserMapping;
 
     constructor() {
 
