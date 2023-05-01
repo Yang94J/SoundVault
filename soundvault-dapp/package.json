@@ -1,0 +1,30 @@
+{
+  "name": "soundvault-dapp",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@particle-network/auth": "^0.12.2",
+    "@particle-network/connect-react-ui": "^0.12.2",
+    "@particle-network/provider": "^0.12.2",
+    "@particle-network/solana-wallet": "^0.12.2",
+    "@walletconnect/ethereum-provider": "^1.8.0",
+    "autoprefixer": "10.4.14",
+    "classnames": "^2.3.2",
+    "dotenv": "^16.0.3",
+    "eslint": "8.39.0",
+    "eslint-config-next": "13.3.4",
+    "fs": "^0.0.1-security",
+    "next": "13.3.4",
+    "postcss": "8.4.23",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-merge-refs": "^2.0.1",
+    "tailwindcss": "3.3.2"
+  }
+}
