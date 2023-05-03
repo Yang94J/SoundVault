@@ -2,6 +2,7 @@ require("@nomicfoundation/hardhat-toolbox");
 require('dotenv').config()
 
 const GANACHE_PRIVATE_KEYS = process.env.Ganache.split(",");
+const GETH_PRIVATE_KEYS = process.env.GETH.split(",");
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
@@ -24,11 +25,16 @@ module.exports = {
     bsctest : {
       accounts : [process.env.BNBTest],
       url : "https://data-seed-prebsc-1-s3.binance.org:8545/"
+    },
+    geth : {
+      accounts : GETH_PRIVATE_KEYS,
+      url : "https://goerli.infura.io/v3/575c57186c10467fb546ec3125b477de"
     }
   },
   etherscan: {
     apiKey : {
       bscTestnet : process.env.bnbapi,
+      goerli : process.env.gethapi
     }
   }
 };

@@ -44,7 +44,13 @@ contract ContentVault is UserVault{
 
     // for demo purpose, would set this to 0
     // Wouldn't regard too much of tokenomics
-    uint256 constant TAX = 0; 
+    uint256 constant TAX = 0;
+
+    // total number of purchase
+    uint256 public purchaseNumer;
+
+    // total value of purchase
+    uint256 public purchaseTokenAmount;
 
     // vaultToken for governance and payment
     IERC20  public vaultToken;
@@ -177,6 +183,8 @@ contract ContentVault is UserVault{
         musicId2BuyerAmountMapping[musicId][msg.sender] = amount;
         buyer2MusicIdMapping[msg.sender].push(musicId);
         address2UserMapping[msg.sender].purchase = address2UserMapping[msg.sender].purchase + amount;
+        purchaseNumer += 1;
+        purchaseTokenAmount += amountToPay;
 
         // verify eligble for airdrop
         if (!author2userEligibleMapping[author][msg.sender]){
@@ -387,5 +395,9 @@ contract ContentVault is UserVault{
             list[i] = buyer2MusicIdMapping[_user][i];
         }
         return list;
+    }
+
+    function getMusicNumber() public view returns(uint256){
+        return vaultNFT.tokenNumber();
     }
 }
