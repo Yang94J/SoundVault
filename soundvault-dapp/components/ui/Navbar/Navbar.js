@@ -2,7 +2,6 @@ import Link from 'next/link';
 import Logo from '@/components/icons/Logo';
 import { ConnectButton } from '@particle-network/connect-react-ui';
 import s from './Navbar.module.css';
-
 import {useAccount} from "@particle-network/connect-react-ui";
 
 const Navbar = () => {
@@ -26,8 +25,13 @@ const Navbar = () => {
               <Link href="/" className={s.link}>
                 DashBoard
               </Link>
-              <Link href="/creation" className={login ? s.link : `${s.link} invisible`}>
-                Create
+              {/* <Link href="/author" className={login ? s.link : `${s.link} invisible`}> */}
+              <Link href="/author" className={s.link} >
+                Author
+              </Link>
+              {/* <Link href="/author" className={login ? s.link : `${s.link} invisible`}> */}
+              <Link href="/explore" className={s.link} >
+                Explore
               </Link>
             </nav>
           </div>

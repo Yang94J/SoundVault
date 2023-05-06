@@ -1,4 +1,5 @@
 require("@nomicfoundation/hardhat-toolbox");
+require('hardhat-gas-reporter');
 require('dotenv').config()
 
 const GANACHE_PRIVATE_KEYS = process.env.Ganache.split(",");
@@ -7,6 +8,12 @@ const GETH_PRIVATE_KEYS = process.env.GETH.split(",");
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   solidity: "0.8.18",
+  settings: {
+    optimizer: {
+      enabled: true,
+      runs: 200
+    }
+  },
   defaultNetwork: "hardhat",
   networks:{
     // Hardhat has a local ethereum network that is run in two flavors. 
@@ -36,5 +43,8 @@ module.exports = {
       bscTestnet : process.env.bnbapi,
       goerli : process.env.gethapi
     }
-  }
+  },
+  gasReporter: {
+    enabled: true
+  },
 };

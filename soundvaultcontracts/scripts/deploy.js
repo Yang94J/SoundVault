@@ -63,6 +63,7 @@ async function main() {
   await vaultToken.connect(owner).transfer(bob.address, BigInt(VAULT_TOKEN_BOB_INIT * (10 ** VAULT_TOKEN_DECIMALS)));
   await vaultToken.connect(owner).transfer(jack.address, BigInt(VAULT_TOKEN_JACK_INIT * (10 ** VAULT_TOKEN_DECIMALS)));
 
+  await vaultToken.connect(owner).approve(musicVault.address, ethers.constants.MaxUint256);
   await vaultToken.connect(alice).approve(musicVault.address, ethers.constants.MaxUint256);
   await vaultToken.connect(bob).approve(musicVault.address, ethers.constants.MaxUint256);
   await vaultToken.connect(jack).approve(musicVault.address, ethers.constants.MaxUint256);
