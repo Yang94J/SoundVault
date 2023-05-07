@@ -1,6 +1,7 @@
 import { useState , useEffect} from 'react';
 import { useAccount,useParticleProvider} from "@particle-network/connect-react-ui";
 import getMusicVault from "@/libs/musicVault";
+import getVaultToken from '@/libs/vaultToken';
 import { ethers } from 'ethers';
 import StatisticCard from './ui/StatisticCard/StatisticCard';
 import LeaderBoard from './ui/LeaderBoard/LeaderBoard';
@@ -12,10 +13,12 @@ export default function ExploreDashboard(){
     // let provider = undefined;
     // let signer = undefined;
     // let musicVault = undefined;
+    // let vaultToken = undefined;
     // if (account != undefined && account != ""){
     //     const web3provider = useParticleProvider();
     //     provider = new ethers.providers.Web3Provider(web3provider);
     //     musicVault = getMusicVault(provider);
+    //     vault
     //     signer = provider.getSigner();
     // }
 
@@ -31,11 +34,13 @@ export default function ExploreDashboard(){
     let account;
     let provider;
     let musicVault;
+    let vaultToken;
     let signer;
 
     const [musicList,setMusicList] = useState([])
     const [purchaseLeaderBoardList,setPurchaseLeaderBoardList] = useState([])
     const [voteLeaderBoardList,setVoteLeaderBoardList] = useState([])
+    const [userCredit,setUserCredit] = useState(1);
 
 
     useEffect(() => {
@@ -46,6 +51,7 @@ export default function ExploreDashboard(){
             signer = provider.getSigner();
             account = await signer.getAddress();
             musicVault = getMusicVault(provider);
+            vaultToken = getVaultToken(provider);
             await fetchData();
             }
         fetchDataAsync();
@@ -60,7 +66,8 @@ export default function ExploreDashboard(){
         console.log(voteLeaderBoard)
         setVoteLeaderBoardList(await Promise.all(voteLeaderBoard.map(getMusicById)));
         const musicList = Array.from({ length: (await musicVault.getMusicNumber()).toNumber() }, (_, index) => index);
-        setMusicList(await Promise.all(musicList.map(getMusicById)));
+        setMusicList(await Promise.all(musicList.map(getMusicByIdInDetail)));
+        setUserCredit((await musicVault.getUserCredit(account)).toNumber());
     }
 
     const getMusicById = async (val) => {
@@ -71,8 +78,75 @@ export default function ExploreDashboard(){
             id = val;
         }
         let musicInfo = await musicVault.musicId2MusicMapping(id);
+        return (musicInfo);
+    }
+
+    const getMusicByIdInDetail = async (val) => {
+        let id;
+
+        // @todo optimize
+        if ((typeof val)!='number'){
+            id = val.toNumber();
+        }else{
+            id = val;
+        }
+
+        let musicInfo = await musicVault.musicId2MusicMapping(id);
         let musicSellInfo = await musicVault.musicId2MusicSellInfoMapping(id);
-        return ({...musicInfo, ...musicSellInfo});
+        let music = {...musicInfo, ...musicSellInfo};
+
+        music.isFan = false;
+        music.bought = !((await musicVault.musicId2BuyerAmountMapping(id,account)).toNumber()==0);
+        music.voted = !((await musicVault.musicId2BuyerVoteAmountMapping(id,account)).toNumber()==0);
+
+        console.log(music);
+        return music;
+    }
+
+    const getPurchaseFee = async (id,amount) => {
+        // to be commented
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        musicVault = getMusicVault(provider);
+
+        const tmp = (await musicVault.calculatePurchaseFee(id,amount));
+        const val = ethers.utils.formatUnits(tmp,"ether");
+        return val;
+    }
+
+    const getVoteFee = async (amount) => {
+        // to be commented
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        musicVault = getMusicVault(provider);
+
+        const tmp = (await musicVault.calculateVoteFee(amount));
+        const val = ethers.utils.formatUnits(tmp,"ether");
+        return val;
+    }
+
+    const purchase = async (id,amount) => {
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        musicVault = getMusicVault(provider);
+        vaultToken = getVaultToken(provider);
+        signer = provider.getSigner();
+
+
+        const tokenAmount = (await musicVault.calculatePurchaseFee(id,amount)).toString();
+        await vaultToken.connect(signer).approve(musicVault.address,tokenAmount);
+        await musicVault.connect(signer).purchaseMusic(id,amount);
+        console.log("purchase music");
+    }
+
+    const vote = async (id,amount) => {
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        musicVault = getMusicVault(provider);
+        vaultToken = getVaultToken(provider);
+        signer = provider.getSigner();
+
+
+        const tokenAmount = (await musicVault.calculateVoteFee(amount)).toString();
+        await vaultToken.connect(signer).approve(musicVault.address,tokenAmount);
+        await musicVault.connect(signer).voteMusic(id,amount);
+        console.log("vote music");
     }
 
     return (
@@ -90,11 +164,19 @@ export default function ExploreDashboard(){
                                 Exploring the world of melody..   
                             </p>
                             
-                            <div className="mt-12 space-y-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6 lg:max-w-4xl lg:mx-auto xl:max-w-none xl:mx-0 xl:grid-cols-2 overflow-y-auto">
+                            <div className="mt-12 space-y-4 p-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6 lg:max-w-4xl lg:mx-auto xl:max-w-none xl:mx-0 xl:grid-cols-2 overflow-y-auto">
                                 {
                                     musicList.map((music) => {
                                         return(
-                                            <MusicAcheteCards music={music} cbs={1} />
+                                            <MusicAcheteCards 
+                                            music={music} 
+                                            credit = {userCredit}
+                                            cbs={{
+                                                "getPurchaseFee" : getPurchaseFee,
+                                                "getVoteFee" : getVoteFee,
+                                                "purchase" : purchase,
+                                                "vote" : vote
+                                            }} />
                                         )
                                     })
                                 } 

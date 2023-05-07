@@ -81,6 +81,13 @@ export default function AuthorDashboard(){
     }
 
     const createFanNFT = async function() {
+
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+        signer = provider.getSigner();
+        account = await signer.getAddress();
+        musicVault = getMusicVault(provider);
+
         console.log("creating NFT");
         try{
             await(await musicVault.connect(signer).createFanNFT()).wait();
