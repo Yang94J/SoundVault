@@ -33,6 +33,14 @@ const Navbar = () => {
               <Link href="/explore" className={s.link} >
                 Explore
               </Link>
+              {/* <Link href="/author" className={login ? s.link : `${s.link} invisible`}> */}
+              <Link href="/collections" className={s.link} >
+                Collections
+              </Link>
+              {/* <Link href="/author" className={login ? s.link : `${s.link} invisible`}> */}
+              <Link href="/fanclub" className={s.link} >
+                Fanclub
+              </Link>              
             </nav>
           </div>
 

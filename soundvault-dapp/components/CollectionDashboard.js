@@ -1,26 +1,29 @@
-import { useState , useEffect} from 'react';
 import { useAccount,useParticleProvider} from "@particle-network/connect-react-ui";
 import getMusicVault from "@/libs/musicVault";
-import getVaultToken from '@/libs/vaultToken';
 import { ethers } from 'ethers';
-import StatisticCard from './ui/StatisticCard/StatisticCard';
-import LeaderBoard from './ui/LeaderBoard/LeaderBoard';
-import MusicAcheteCards from './ui/musicAcheteCards/MusicAcheteCards';
 
-export default function ExploreDashboard(){
+import { useState , useEffect} from 'react';
+import StatisticCard from './ui/StatisticCard/StatisticCard';
+import MusicAcheteCards from "./ui/musicAcheteCards/MusicAcheteCards";
+
+export default function CollectionDashboard(){
 
     // const account = useAccount();  // get User Info in the hook
+
     // let provider = undefined;
     // let signer = undefined;
     // let musicVault = undefined;
-    // let vaultToken = undefined;
     // if (account != undefined && account != ""){
     //     const web3provider = useParticleProvider();
     //     provider = new ethers.providers.Web3Provider(web3provider);
     //     musicVault = getMusicVault(provider);
-    //     vault
     //     signer = provider.getSigner();
     // }
+
+    let account;
+    let provider;
+    let musicVault;
+    let signer;
 
     // useEffect(() => {
     //     async function fetchDataAsync() {
@@ -31,16 +34,12 @@ export default function ExploreDashboard(){
     //     fetchDataAsync();
     // }, [account]);
 
-    let account;
-    let provider;
-    let musicVault;
-    let vaultToken;
-    let signer;
 
-    const [musicList,setMusicList] = useState([])
-    const [purchaseLeaderBoardList,setPurchaseLeaderBoardList] = useState([])
-    const [voteLeaderBoardList,setVoteLeaderBoardList] = useState([])
-    const [userCredit,setUserCredit] = useState(1);
+    const [purchasedNumber, setPurchasedNumber] = useState(-1);
+    const [purchaseAmount, setPurchaseAmount] = useState(-1);
+    const [voteAmount, setVoteAmount] = useState(-1);
+    const [totalTokenExpenses,setTotalTokenExpenses] = useState(-1);
+    const [musicList,setMusicList] = useState([]);
 
 
     useEffect(() => {
@@ -51,37 +50,24 @@ export default function ExploreDashboard(){
             signer = provider.getSigner();
             account = await signer.getAddress();
             musicVault = getMusicVault(provider);
-            vaultToken = getVaultToken(provider);
             await fetchData();
             }
         fetchDataAsync();
     }, []);
 
     const fetchData = async function() {
-        console.log("fetching data for user profile")
-        const purchaseLeaderBoard = await musicVault.getPurchaseLeaderboard();
-        console.log(purchaseLeaderBoard)
-        setPurchaseLeaderBoardList(await Promise.all(purchaseLeaderBoard.map(getMusicById)));
-        const voteLeaderBoard = await musicVault.getVoteLeaderboard();
-        console.log(voteLeaderBoard)
-        setVoteLeaderBoardList(await Promise.all(voteLeaderBoard.map(getMusicById)));
-        const musicList = Array.from({ length: (await musicVault.getMusicNumber()).toNumber() }, (_, index) => index);
-        setMusicList(await Promise.all(musicList.map(getMusicByIdInDetail)));
-        setUserCredit((await musicVault.getUserCredit(account)).toNumber());
-    }
-
-    const getMusicById = async (val) => {
-        let id;
-        if ((typeof val)!='number'){
-            id = val.toNumber();
-        }else{
-            id = val;
-        }
-        let musicInfo = await musicVault.musicId2MusicMapping(id);
-        return (musicInfo);
+        console.log("fetching data for user profile");
+        setPurchasedNumber(1);
+        setPurchaseAmount(1);
+        setVoteAmount(1);
+        setTotalTokenExpenses(1);
+        const list = await musicVault.getBuyerMusicIdList(account);
+        console.log(list);
+        setMusicList(await Promise.all(list.map(getMusicByIdInDetail)));
     }
 
     const getMusicByIdInDetail = async (val) => {
+        console.log(1);
         let id;
 
         // @todo optimize
@@ -149,43 +135,57 @@ export default function ExploreDashboard(){
         console.log("vote music");
     }
 
-    return (
-        <section className="bg-black">
-            <div className="w-full mx-auto py-8 sm:py-8 px-4 sm:px-6 lg:px-8">   
-                <div className="sm:flex sm:flex-col sm:align-center">
+    return(
+        <div className="max-w-6xl mx-auto py-8 sm:py-12 px-2 sm:px-6 lg:px-8 h-full">
+            <p className="mt-5 text-xl text-zinc-200 sm:text-center sm:text-2xl max-w-2xl m-auto">
+                        Collection Statistics
+            </p>
+            <div className="mt-12 space-y-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6 lg:max-w-4xl lg:mx-auto xl:max-w-none xl:mx-0 xl:grid-cols-4">
+                <StatisticCard data={{
+                                        "name":"Collection Num",
+                                        "description":"The number of music collections purchased",
+                                        "number":purchasedNumber
+                                    }} />
+                <StatisticCard data={{
+                                        "name":"Puchased Copy",
+                                        "description":"The total number of copy of music purchased",
+                                        "number":purchaseAmount
+                                    }} />
+                <StatisticCard data={{
+                                        "name":"Votes",
+                                        "description":"The toal number of votes for music purchased",
+                                        "number":voteAmount
+                                    }} />
+                <StatisticCard data={{
+                                        "name":"Expenses",
+                                        "description":"Total number of tokens expended in MusicVault",
+                                        "number":totalTokenExpenses
+                                    }} />                                                                                                                       
+            </div>
 
-                    <div className="flex bg-black text-white space-x-4 xl:grid-cols-4">
-                        <div className="flex-grow-0 flex-shrink-0 w-1/4 border border-dashed border-white"> 
-                            <LeaderBoard name="Purchase" list={purchaseLeaderBoardList} className="h-1/2"/>
-                            <LeaderBoard name="Vote" list={voteLeaderBoardList} className="h-1/2"/>
-                        </div>
-                        <div className="flex-grow flex-shrink w-3/4 border border-dashed border-white">
-                            <p className="mt-5 text-xl text-zinc-200 sm:text-center sm:text-2xl max-w-2xl m-auto">
-                                Exploring the world of melody..   
-                            </p>
-                            
-                            <div className="mt-12 space-y-4 p-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6 lg:max-w-4xl lg:mx-auto xl:max-w-none xl:mx-0 xl:grid-cols-2 overflow-y-auto">
-                                {
-                                    musicList.map((music) => {
-                                        return(
-                                            <MusicAcheteCards 
-                                            music={music} 
-                                            credit = {userCredit}
-                                            cbs={{
-                                                "getPurchaseFee" : getPurchaseFee,
-                                                "getVoteFee" : getVoteFee,
-                                                "purchase" : purchase,
-                                                "vote" : vote
-                                            }} />
-                                        )
-                                    })
-                                } 
-                            </div>
-                        </div>
-                    </div>                    
+                <p className="mt-5 text-xl text-zinc-200 sm:text-center sm:text-2xl max-w-2xl m-auto">
+                    Collections   
+                </p>
+                
+                <div className="mt-12 space-y-4 p-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6 lg:max-w-4xl lg:mx-auto xl:max-w-none xl:mx-0 xl:grid-cols-2 overflow-y-auto">
+                    {
+                        musicList.map((music) => {
+                            return(
+                                <MusicAcheteCards 
+                                music={music} 
+                                credit = {0}
+                                cbs={{
+                                    "getPurchaseFee" : getPurchaseFee,
+                                    "getVoteFee" : getVoteFee,
+                                    "purchase" : purchase,
+                                    "vote" : vote
+                                }} />
+                            )
+                        })
+                    } 
+
                 </div>
-            </div>    
-        </section>
+            </div>
     )
 
 }

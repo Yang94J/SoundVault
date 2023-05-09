@@ -4,7 +4,7 @@ import { ethers } from 'ethers';
 import { IPFS_AUDIOPREFIX } from "@/libs/Ipfs";
 import { useState , useEffect} from 'react';
 
-export default function MusicBox(){
+export default function MusicBox({url}){
 
     // const account = useAccount();  // get User Info in the hook
     // let provider = undefined;
@@ -48,9 +48,15 @@ export default function MusicBox(){
 
     const fetchData = async function() {
         console.log("fetching data for user profile")
-
-        const ownerMusicIdList = await musicVault.getOwneMusicIdList(account);
-        const tmp = await Promise.all(ownerMusicIdList.map(async (val) => {
+        let list;
+        console.log(url);
+        if (url == "author"){
+            list = await musicVault.getOwneMusicIdList(account);
+        }
+        if (url == "collection"){
+            list = await musicVault.getBuyerMusicIdList(account);
+        }
+        const tmp = await Promise.all(list.map(async (val) => {
             let id = val.toNumber();
             return (await musicVault.musicId2MusicMapping(id));
         }));

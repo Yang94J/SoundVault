@@ -17,6 +17,7 @@
     "@particle-network/provider": "^0.12.2",
     "@particle-network/solana-wallet": "^0.12.2",
     "@walletconnect/ethereum-provider": "^1.8.0",
+    "@web3mq/client": "^1.0.13",
     "autoprefixer": "10.4.14",
     "axios": "^1.4.0",
     "classnames": "^2.3.2",

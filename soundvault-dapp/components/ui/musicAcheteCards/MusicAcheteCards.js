@@ -66,7 +66,7 @@ export default function MusicAcheteCards({music,credit,cbs}){
             </div>
             <div className="w-1/2 flex flex-col items-center justify-around">
                         {
-                            (!music.bought)?
+                            (music.bought==0)?
                             (
                                 <div className="w-full flex flex-row items-center justify-around">
                                     <input type="range" min="0" max={credit} defaultValue="0" className="w-1/2 mr-2" onChange={purchaseSlideChange}/>
@@ -78,17 +78,17 @@ export default function MusicAcheteCards({music,credit,cbs}){
                                             {"Purchase "+purchaseNumber}
                                         </button>
                                         <p id={"purchaseToken"+id}> 
-                                            {"Est "+ purchaseTokenAmount + "Tokens"}
+                                            {"Est "+ purchaseTokenAmount + " Tokens"}
                                         </p>
                                     </div>
                                 </div>
                             ): (
-                                <h2 className="text-2xl font-bold text-white mb-4">Bought</h2>
+                                <h2 className="text-2xl font-bold text-white mb-4">Bought {music.bought}</h2>
                             )
                         }
 
                         {
-                            (!music.voted)?
+                            (music.voted==0)?
                             (
                             <div className="w-full flex flex-row items-center justify-around">
                                 <input type="range" min="1" max={credit} defaultValue="1" className="w-1/2 mr-2" onChange={voteSlideChange}/>
@@ -98,12 +98,12 @@ export default function MusicAcheteCards({music,credit,cbs}){
                                         {"Vote "+voteNumber}
                                     </button>
                                     <p id={"voteToken"+id}> 
-                                        {"Est "+ voteTokenAmount + "Tokens"}
+                                        {"Est "+ voteTokenAmount + " Tokens"}
                                     </p>
                                 </div>
                             </div>
                             ) : (
-                                <h2 className="text-2xl font-bold text-white mb-4">Voted</h2> 
+                                <h2 className="text-2xl font-bold text-white mb-4">Voted {music.voted}</h2> 
                             )
                         }
 
