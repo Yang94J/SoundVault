@@ -6,7 +6,7 @@ export default function Collections() {
 
   return (
     <Layout>
-      <section className="bg-black min-h-screen">
+      <section className="bg-black h-[767px]">
         <div className="flex bg-black text-white space-x-4 xl:grid-cols-4">
           <div className="flex-grow-0 flex-shrink-0 w-1/4 border border-dashed border-white"> 
               <MusicBox url="collection"/>

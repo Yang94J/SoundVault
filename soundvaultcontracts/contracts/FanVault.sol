@@ -48,7 +48,9 @@ contract FanVault is ContentVault {
     }
 
     function getFanNumber(address _user) public view returns (uint256){
-        require(address2UserMapping[_user].fanNFT != address(0),"no fanclub");
+        if (address2UserMapping[_user].fanNFT == address(0)){
+            return 0;
+        }
         return fanNFTFactory.getFanNumber(address2UserMapping[_user].fanNFT);
     }
 

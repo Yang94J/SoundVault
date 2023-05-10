@@ -257,7 +257,7 @@ describe("MusicVault", function () {
             const {musicVault, vaultToken, vaultNFT, fanNFTFactory, owner, alice, bob, young} = await loadFixture(deployFixture);
             expect((await musicVault.address2UserMapping(alice.address)).fanNFT).to.equal(ethers.constants.AddressZero);
             await expect(musicVault.connect(bob).followMusician(alice.address)).to.be.revertedWith("no fanclub");
-            await expect (musicVault.getFanNumber(alice.address)).to.be.revertedWith("no fanclub");
+            expect(await musicVault.getFanNumber(alice.address)).to.be.equal(0);
             await (await musicVault.connect(alice).createFanNFT("aliceFanClub")).wait();
             expect((await musicVault.address2UserMapping(alice.address)).fanNFT).to.not.equal(ethers.constants.AddressZero);
             expect (await musicVault.userNumber()).to.equal(1);

@@ -9,7 +9,7 @@ export default function Home() {
   return (
     <>
       <Layout>
-        <Dashboard/>
+        <Dashboard className="max-h-[767px] min-h-[767px]"/>
       </Layout>
     </>
   )

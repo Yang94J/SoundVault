@@ -2,7 +2,7 @@ export default function LeaderBoard({name,list}){
     return(
         <div >
             <div className="h-3/4 w-full space-y-1 sm:mt-16 sm:space-y-0  overflow-y-auto">
-                <p className="mt-5 text-xl text-zinc-200  sm:text-2xl max-w-2xl m-auto">
+                <p className="mt-5 p-2 text-3xl font-bold text-gray-800 text-center sm:text-left sm:text-2xl max-w-2xl mx-auto">
                     {name}
                 </p>
                 {

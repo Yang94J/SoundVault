@@ -9,6 +9,7 @@ import Button from './ui/Button/Button';
 import { Snackbar, Alert } from "@mui/material";
 import UploadForm from "./UploadForm";
 import { uploadFile,uploadJson } from "@/libs/Ipfs";
+import { login, instance } from "@/libs/web3mq";
 
 export default function AuthorDashboard(){
 
@@ -67,9 +68,14 @@ export default function AuthorDashboard(){
 
     const fetchData = async function() {
         console.log("fetching data for user profile")
-        setOwnedMusic((await musicVault.getOwnerMusicNumber(account)).toNumber())
-        setFanNFT((await musicVault.address2UserMapping(account)).fanNFT);
-        const ownerMusicIdList = await musicVault.getOwneMusicIdList(account);
+        const user = await musicVault.address2UserMapping(account);
+        setOwnedMusic((await musicVault.getOwnerMusicNumber(account)).toNumber());
+        setTotalPurchases((user.soldCopy).toNumber());
+        setTotalTokenReceived(ethers.utils.formatUnits(user.totalRevenue,"ether"));
+        setTotalVotes(user.receivedVote.toNumber());
+        setTotalFanNumber((await musicVault.getFanNumber(account)).toNumber());
+        setFanNFT(user.fanNFT);
+        const ownerMusicIdList = await musicVault.getOwnerMusicIdList(account);
         console.log(ownerMusicIdList);
         const tmp = await Promise.all(ownerMusicIdList.map(async (val) => {
             let id = val.toNumber();
@@ -90,7 +96,26 @@ export default function AuthorDashboard(){
 
         console.log("creating NFT");
         try{
-            await(await musicVault.connect(signer).createFanNFT()).wait();
+            await(await musicVault.connect(signer).createFanNFT(account.slice(-4)+"-FAN")).wait();
+            
+            if (instance == undefined){
+                await login();
+            }
+
+            let channel;
+            instance.on("channel.getList",async (props)=>{
+                const { channelList} = instance.channel;
+                channel = channelList[0];
+                console.log(channel);
+                await musicVault.connect(signer).setFanChatId(channel.chatid);
+            });
+
+            await instance.channel.createRoom({
+                group_name: account.slice(-4)+"--FanClub",
+            })
+            await instance.channel.queryChannels({
+            });
+
             setOpenS(true);
             console.log("Success");
         }catch {
@@ -181,7 +206,7 @@ export default function AuthorDashboard(){
                                     }} />                                                                                                                       
             </div>
 
-            <div className="w-full space-y-4 sm:mt-16 sm:space-y-0  overflow-y-auto h-64 ">
+            <div className="w-full space-y-4 sm:mt-16 sm:space-y-0  overflow-y-auto max-h-[220px] min-h-[220px]">
                 <table className="w-full border-separate border border-slate-400">
                     <thead>
                         <tr>

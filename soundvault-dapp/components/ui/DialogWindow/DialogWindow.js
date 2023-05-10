@@ -16,7 +16,7 @@ export default function DialogWindow({list,cbs}) {
         <div className='relative flex h-full max-w-full flex-1 overflow-y-auto '>
             <div className='flex h-full max-w-full flex-1 flex-col overflow-hidden'>
                 <main className='relative h-full w-full transition-width flex flex-col overflow-hidden items-stretch flex-1'>
-                    <div className='flex-1 overflow-hidden overflow-y-auto max-h-[700px] min-h-[700px]'>
+                    <div className='flex-1 overflow-hidden overflow-y-auto h-[650px]'>
                         <div className='h-full dark:bg-gray-800'> 
                         <div className=''>
                         <div className='flex flex-col items-center text-sm dark:bg-gray-800'>

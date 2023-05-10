@@ -52,7 +52,7 @@ export default function Dashboard(){
 
     const fetchData = async function () {
         console.log("fetching data from blockchain");
-        setMusicNumber((await musicVault.getMusicNumber()).toNumber());
+        setMusicNumber((await musicVault.musicNumber()).toNumber());
         setUserNumber((await musicVault.userNumber()).toNumber());
         setPurchases((await musicVault.purchaseNumer()).toNumber()); //@todo
         setPurchaseAmount(ethers.utils.formatUnits(await musicVault.purchaseTokenAmount(),"ether"));
@@ -61,7 +61,7 @@ export default function Dashboard(){
 
 
     return (
-        <section className="bg-black">
+        <section className="bg-black max-h-[767px] min-h-[767px]">
             <div className="max-w-6xl mx-auto py-8 sm:py-24 px-4 sm:px-6 lg:px-8">
                 <div className="sm:flex sm:flex-col sm:align-center">
                     <h1 className="text-4xl font-extrabold text-white sm:text-center sm:text-6xl">
@@ -85,12 +85,12 @@ export default function Dashboard(){
                                         }} />
                     <StatisticCard data={{
                                             "name":"User Number",
-                                            "description":"Number of users get engaged with musicvault",
+                                            "description":"Number of users get interacted with musicvault",
                                             "number":userNumber
                                         }} />
                     <StatisticCard data={{
                                             "name":"Purchase",
-                                            "description":"Number of Purchases made by users",
+                                            "description":"Number of music copies purchased by users",
                                             "number":purchases
                                         }} />
                     <StatisticCard data={{

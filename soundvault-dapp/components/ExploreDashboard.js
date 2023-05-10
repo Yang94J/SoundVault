@@ -65,7 +65,7 @@ export default function ExploreDashboard(){
         const voteLeaderBoard = await musicVault.getVoteLeaderboard();
         console.log(voteLeaderBoard)
         setVoteLeaderBoardList(await Promise.all(voteLeaderBoard.map(getMusicById)));
-        const musicList = Array.from({ length: (await musicVault.getMusicNumber()).toNumber() }, (_, index) => index);
+        const musicList = Array.from({ length: (await musicVault.musicNumber()).toNumber() }, (_, index) => index);
         setMusicList(await Promise.all(musicList.map(getMusicByIdInDetail)));
         setUserCredit((await musicVault.getUserCredit(account)).toNumber());
     }
@@ -150,16 +150,18 @@ export default function ExploreDashboard(){
     }
 
     return (
-        <section className="bg-black">
-            <div className="w-full mx-auto py-8 sm:py-8 px-4 sm:px-6 lg:px-8">   
-                <div className="sm:flex sm:flex-col sm:align-center">
+        <section className="bg-black max-h-[767px] min-h-[767px]">
+            <div className="w-full mx-auto py-8 sm:py-8 px-4 sm:px-6 lg:px-8 ">   
+                <div className="sm:flex sm:flex-col sm:align-center h-full">
 
-                    <div className="flex bg-black text-white space-x-4 xl:grid-cols-4">
-                        <div className="flex-grow-0 flex-shrink-0 w-1/4 border border-dashed border-white"> 
-                            <LeaderBoard name="Purchase" list={purchaseLeaderBoardList} className="h-1/2"/>
-                            <LeaderBoard name="Vote" list={voteLeaderBoardList} className="h-1/2"/>
+                    <div className="flex bg-black text-white space-x-4 xl:grid-cols-4 h-full  h-[700px]">
+                        <div className="flex-grow-0 flex-shrink-0 w-1/4 border border-dashed border-white h-full ">
+                            <div className="flex flex-col space-y-4 overflow-y-auto">
+                                <LeaderBoard name="Purchase" list={purchaseLeaderBoardList} className="h-1/2"/>
+                                <LeaderBoard name="Vote" list={voteLeaderBoardList} className="h-1/2"/>
+                            </div>
                         </div>
-                        <div className="flex-grow flex-shrink w-3/4 border border-dashed border-white">
+                        <div className="flex-grow flex-shrink w-3/4 border border-dashed border-white h-full ">
                             <p className="mt-5 text-xl text-zinc-200 sm:text-center sm:text-2xl max-w-2xl m-auto">
                                 Exploring the world of melody..   
                             </p>

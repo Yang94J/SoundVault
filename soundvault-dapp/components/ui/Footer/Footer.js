@@ -8,7 +8,7 @@ import GitHub from '@/components/icons/GitHub';
 export default function Footer() {
   return (
     <footer className="mx-auto max-w-[1920px] px-6 bg-zinc-900">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 border-b border-zinc-600 py-12 text-white transition-colors duration-150 bg-zinc-900">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 border-b border-zinc-600 py-6 text-white transition-colors duration-150 bg-zinc-900">
         <div className="col-span-1 lg:col-span-2">
           <Link
             href="/"

@@ -77,7 +77,7 @@ export default function FanclubDashboard(){
 
 
     return(
-        <div className="overflow-hidden w-full h-full relative flex z-0 ">
+        <div className="overflow-auto w-full h-full relative flex z-0 h-[767px] ">
             <Chatbar list={channelList} cbs={{"clickChat":clickChat}}/>
             <DialogWindow list={msgList} cbs={{"sendMsg":sendMsg}}/>
         </div>

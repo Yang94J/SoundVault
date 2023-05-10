@@ -36,7 +36,6 @@ export default function CollectionDashboard(){
 
 
     const [purchasedNumber, setPurchasedNumber] = useState(-1);
-    const [purchaseAmount, setPurchaseAmount] = useState(-1);
     const [voteAmount, setVoteAmount] = useState(-1);
     const [totalTokenExpenses,setTotalTokenExpenses] = useState(-1);
     const [musicList,setMusicList] = useState([]);
@@ -57,11 +56,11 @@ export default function CollectionDashboard(){
 
     const fetchData = async function() {
         console.log("fetching data for user profile");
-        setPurchasedNumber(1);
-        setPurchaseAmount(1);
-        setVoteAmount(1);
-        setTotalTokenExpenses(1);
-        const list = await musicVault.getBuyerMusicIdList(account);
+        const user = await musicVault.address2UserMapping(account);
+        setPurchasedNumber(user.purchase.toNumber());
+        setVoteAmount(user.vote.toNumber());
+        setTotalTokenExpenses(ethers.utils.formatUnits(user.totalExpense,"ether"));
+        const list = await musicVault.getCollectorMusicIdList(account);
         console.log(list);
         setMusicList(await Promise.all(list.map(getMusicByIdInDetail)));
     }
@@ -140,16 +139,11 @@ export default function CollectionDashboard(){
             <p className="mt-5 text-xl text-zinc-200 sm:text-center sm:text-2xl max-w-2xl m-auto">
                         Collection Statistics
             </p>
-            <div className="mt-12 space-y-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6 lg:max-w-4xl lg:mx-auto xl:max-w-none xl:mx-0 xl:grid-cols-4">
+            <div className="mt-12 space-y-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6 lg:max-w-4xl lg:mx-auto xl:max-w-none xl:mx-0 xl:grid-cols-3">
                 <StatisticCard data={{
                                         "name":"Collection Num",
-                                        "description":"The number of music collections purchased",
+                                        "description":"The number of music collections collected",
                                         "number":purchasedNumber
-                                    }} />
-                <StatisticCard data={{
-                                        "name":"Puchased Copy",
-                                        "description":"The total number of copy of music purchased",
-                                        "number":purchaseAmount
                                     }} />
                 <StatisticCard data={{
                                         "name":"Votes",
@@ -167,7 +161,7 @@ export default function CollectionDashboard(){
                     Collections   
                 </p>
                 
-                <div className="mt-12 space-y-4 p-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6 lg:max-w-4xl lg:mx-auto xl:max-w-none xl:mx-0 xl:grid-cols-2 overflow-y-auto">
+                <div className=" h-[200px] mt-12 space-y-4 p-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6 lg:max-w-4xl lg:mx-auto xl:max-w-none xl:mx-0 xl:grid-cols-2 overflow-y-auto">
                     {
                         musicList.map((music) => {
                             return(

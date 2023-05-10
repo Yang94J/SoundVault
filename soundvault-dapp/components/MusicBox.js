@@ -51,10 +51,10 @@ export default function MusicBox({url}){
         let list;
         console.log(url);
         if (url == "author"){
-            list = await musicVault.getOwneMusicIdList(account);
+            list = await musicVault.getOwnerMusicIdList(account);
         }
         if (url == "collection"){
-            list = await musicVault.getBuyerMusicIdList(account);
+            list = await musicVault.getCollectorMusicIdList(account);
         }
         const tmp = await Promise.all(list.map(async (val) => {
             let id = val.toNumber();
@@ -78,8 +78,8 @@ export default function MusicBox({url}){
 
     return (
         <div className="h-full">
-            <div className="h-3/4 w-full space-y-1 sm:mt-16 sm:space-y-0  overflow-y-auto">
-                <p className="mt-5 text-xl text-zinc-200 sm:text-center sm:text-2xl max-w-2xl m-auto">
+            <div className="h-4/5 w-full mt-16 sm:mt-0 overflow-y-auto">
+                <p className="mt-5 p-2 text-3xl font-bold text-gray-800 text-center sm:text-left sm:text-2xl max-w-2xl mx-auto">
                     PlayList
                 </p>
                 {
@@ -95,7 +95,7 @@ export default function MusicBox({url}){
                     })
                 }
             </div>
-            <div className="h-1/4 p-2 justify-center gap-5">
+            <div className="h-1/5 p-2 justify-center space-y-4">
                 <h4 id="playmusicName" className="text-1xl leading-6 font-semibold text-white">
                     Playing ...
                 </h4>
