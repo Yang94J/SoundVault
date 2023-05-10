@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import "./UserVault.sol";
@@ -12,7 +12,7 @@ contract ContentVault is UserVault{
     event musicVote(address indexed buyer, uint256 indexed musicId, string musicName, uint256 amount);
     event fanClubCreate(address indexed musician, address indexed fanNFT);
     event fanClubJoin(address indexed musician, address indexed fanNFT, address indexed fan);
-    event leadBoardRefresh();
+    event leaderBoardRefresh();
 
     // music struct, rarely changed
     struct music {
@@ -20,18 +20,15 @@ contract ContentVault is UserVault{
         string musicName; // music Basic Info
         address author; // music author, would enjoy voting reflections
         string musicDescription; // music Description
-        uint256 contentHash; // to prove hash uniqueNess of the content
+        string cid; // to prove uniqueNess of the content
         uint256 purchaseFee; // baseFee for purchasing
         uint256 uploadTimestamp; // uploadTimestamp, could be used for refreshLeaderBoard @suppressed
-    }
-
-    // music selliing info
-    struct musicSellInfo {
         uint256 purchaseAmount; // amount of purchase
         uint256 purchaseRevenue; // total Revenue from purchase
         uint256 voteAmount; // amount of vote
         uint256 voteRevenue; // total Revenue from vote
     }
+
 
     // music create FEE @prevent malicious attack
     uint256 constant CREATE_BASE_FEE = 10 ether;
@@ -46,7 +43,10 @@ contract ContentVault is UserVault{
     // Wouldn't regard too much of tokenomics
     uint256 constant TAX = 0;
 
-    // total number of purchase
+    // total number of music in the vault
+    uint256 public musicNumber;
+
+    // total number of purchase in the vault
     uint256 public purchaseNumer;
 
     // total value of purchase
@@ -62,34 +62,35 @@ contract ContentVault is UserVault{
     // seperate to simplify the code
     IFanNFTFactory public fanNFTFactory;
 
-    address public tokenVaultWalletAddress;
+    // the wallet used to receive Create music fee
+    address public tokenVaultWalletAddress; 
 
     // musicId to Music struct
     mapping(uint256 => music) public musicId2MusicMapping;
-
-    // musicId to sell info
-    mapping(uint256 => musicSellInfo) public musicId2MusicSellInfoMapping;
 
     // musician to MusicId Array mapping
     mapping(address => uint256[]) public owner2MusicIdMapping;
 
     // content Duplication check mapping
-    mapping(uint256 => bool) public contentUploadedMapping;
+    mapping(string => bool) public contentUploadedMapping;
 
-    // buyer to MusicId mapping
-    mapping(address => uint256[]) public buyer2MusicIdMapping;
+    // collector(including musicOwner himeself) to MusicId mapping
+    mapping(address => uint256[]) public collector2MusicIdMapping;
 
-    // music to buyer purchase amount, just for recording
-    mapping(uint256 => mapping(address => uint256)) public musicId2BuyerAmountMapping;
+    // music to collector copy amount, just for recording
+    mapping(uint256 => mapping(address => uint256)) public musicId2CollectorAmountMapping;
 
-    // music to buyer purchase amount, just for recording
-    mapping(uint256 => mapping(address => uint256)) public musicId2BuyerVoteAmountMapping;
+    // music to collector copy amount, just for recording
+    mapping(uint256 => mapping(address => uint256)) public musicId2CollectorVoteAmountMapping;
 
+    // check for fan eligible
     mapping(address => mapping(address => bool)) public author2userEligibleMapping;
+
 
     // LeaderBoard for musicPurchase List
     // uint256[] musicPurchaseLeaderboard = new uint256[](LEADERBORAD_LENGTH);
     uint256[] musicPurchaseLeaderboard = new uint256[](0);
+
     // LeaderBoard for musicVote List
     // uint256[] musicVoteLeaderboard = new uint256[](LEADERBORAD_LENGTH);
     uint256[] musicVoteLeaderboard = new uint256[](0);
@@ -117,11 +118,11 @@ contract ContentVault is UserVault{
     // @vuln kinda vulnerable to frontRun Attack?
     function uploadMusic(string memory musicName,
                          string memory musicDescription,
-                         uint256 contentHash,
+                         string memory cid,
                          uint256 purchaseFee,
                          string memory tokenURI) public returns(uint256){
         
-        require(!contentUploadedMapping[contentHash],"already uploaded");
+        require(!contentUploadedMapping[cid],"already uploaded");
 
         vaultToken.transferFrom(msg.sender, tokenVaultWalletAddress, CREATE_BASE_FEE);
         uint256 musicId = vaultNFT.mint(msg.sender, tokenURI);
@@ -131,13 +132,19 @@ contract ContentVault is UserVault{
         musicId2MusicMapping[musicId].musicName = musicName;
         musicId2MusicMapping[musicId].author = msg.sender;
         musicId2MusicMapping[musicId].musicDescription = musicDescription;
-        musicId2MusicMapping[musicId].contentHash = contentHash;
+        musicId2MusicMapping[musicId].cid = cid;
         musicId2MusicMapping[musicId].purchaseFee = purchaseFee;
         musicId2MusicMapping[musicId].uploadTimestamp = block.timestamp;
 
         // state change
         owner2MusicIdMapping[msg.sender].push(musicId);
-        contentUploadedMapping[musicId] =  true;
+        collector2MusicIdMapping[msg.sender].push(musicId);
+        musicId2CollectorAmountMapping[musicId][msg.sender] = 1;
+        musicId2CollectorVoteAmountMapping[musicId][msg.sender] = 1;
+
+        contentUploadedMapping[cid] =  true;
+
+        musicNumber += 1;
 
         registerUser(msg.sender);
 
@@ -147,16 +154,19 @@ contract ContentVault is UserVault{
     }
 
     // FAN NFT create, triggered by user request
-    function createFanNFT() public {
+    function createFanNFT(string memory fanNFTName) public {
         require(address2UserMapping[msg.sender].fanNFT==address(0),"already created");
-        address fanNFT = fanNFTFactory.createFanToken("FanNFT", "FT");
+        address fanNFT = fanNFTFactory.createFanToken(fanNFTName, "FT");
         address2UserMapping[msg.sender].fanNFT = fanNFT;
         fanNFTFactory.mint(fanNFT, msg.sender);
-
         registerUser(msg.sender);
-
         emit fanClubCreate(msg.sender, fanNFT);
-    } 
+    }
+
+    function setFanChatId(string memory fanchatId) public {
+        require(address2UserMapping[msg.sender].fanNFT!=address(0),"no fanclub");
+        address2UserMapping[msg.sender].chatId = fanchatId;
+    }
 
     // follow to mint
     function followMusician(address author) public{
@@ -172,18 +182,24 @@ contract ContentVault is UserVault{
     // Purchase Music
     function purchaseMusic(uint256 musicId, uint256 amount) public amountCheck(msg.sender,amount){
         address author = musicId2MusicMapping[musicId].author;
-        require(author!=msg.sender,"not for author");
-        require(musicId2BuyerAmountMapping[musicId][msg.sender]==0,"only Purchase Once");
+        require(musicId2CollectorAmountMapping[musicId][msg.sender]==0,"already owned");
 
         uint256 amountToPay = calculateSquaredFee(musicId2MusicMapping[musicId].purchaseFee,amount);
 
         // The revenue should be given to the owner of the vaultNFT, author and owner may not be the same
         vaultToken.transferFrom(msg.sender, vaultNFT.ownerOf(musicId), amountToPay);
 
-        musicId2BuyerAmountMapping[musicId][msg.sender] = amount;
-        buyer2MusicIdMapping[msg.sender].push(musicId);
-        address2UserMapping[msg.sender].purchase = address2UserMapping[msg.sender].purchase + amount;
-        purchaseNumer += 1;
+        // state changes
+        musicId2CollectorAmountMapping[musicId][msg.sender] = amount;
+        collector2MusicIdMapping[msg.sender].push(musicId);
+
+        address2UserMapping[msg.sender].purchase +=  amount;
+        address2UserMapping[msg.sender].totalExpense += amountToPay;
+
+        address2UserMapping[author].soldCopy += amount;
+        address2UserMapping[author].totalRevenue += amountToPay;
+
+        purchaseNumer += amount;
         purchaseTokenAmount += amountToPay;
 
         // verify eligble for airdrop
@@ -215,14 +231,19 @@ contract ContentVault is UserVault{
     // vote for music of amount of votes given
     function voteMusic(uint256 musicId, uint256 amount) public amountCheck(msg.sender,amount){
         address author = musicId2MusicMapping[musicId].author;
-        require(author!=msg.sender,"not for author");
-        require(musicId2BuyerVoteAmountMapping[musicId][msg.sender]==0,"only Vote Once");
+        require(musicId2CollectorVoteAmountMapping[musicId][msg.sender]==0,"already voted");
         uint256 amountToPay = calculateVoteFee(amount);
         // The vote is given to author
         vaultToken.transferFrom(msg.sender, author, amountToPay);
 
-        address2UserMapping[msg.sender].vote = address2UserMapping[msg.sender].vote + 1;
-        musicId2BuyerVoteAmountMapping[musicId][msg.sender] = musicId2BuyerVoteAmountMapping[musicId][msg.sender] + amount;
+        // state changes
+        musicId2CollectorVoteAmountMapping[musicId][msg.sender] =  amount;
+
+        address2UserMapping[msg.sender].vote += 1;
+        address2UserMapping[msg.sender].totalExpense += amountToPay;
+
+        address2UserMapping[author].receivedVote += amount;
+        address2UserMapping[author].totalRevenue += amountToPay;
 
         // LeaderBoard Refresh
         updateMusicVote(musicId,amount,amountToPay);
@@ -235,7 +256,7 @@ contract ContentVault is UserVault{
     }
 
     // calculate for votes fees
-    function calculateVoteFee(uint256 amount) public view returns (uint256){
+    function calculateVoteFee(uint256 amount) public pure returns (uint256){
         return calculateSquaredFee(VOTE_BASE_FEE, amount);
     }
 
@@ -244,8 +265,8 @@ contract ContentVault is UserVault{
 
 
         // update information
-        musicId2MusicSellInfoMapping[musicId].purchaseAmount += amount;
-        musicId2MusicSellInfoMapping[musicId].purchaseRevenue += amountToPay;
+        musicId2MusicMapping[musicId].purchaseAmount += amount;
+        musicId2MusicMapping[musicId].purchaseRevenue += amountToPay;
 
         if (searchMusidIdinPurchaseLeaderboard(musicId)){
             return;
@@ -254,10 +275,10 @@ contract ContentVault is UserVault{
         // if there is enough space for leaderboard
         if (musicPurchaseLeaderboard.length < LEADERBORAD_LENGTH){
             musicPurchaseLeaderboard.push(musicId);
-            emit leadBoardRefresh();
+            emit leaderBoardRefresh();
         }else{
             // check if necessary to loop
-            if (musicId2MusicSellInfoMapping[musicId].purchaseAmount > thresholdForPurchase){
+            if (musicId2MusicMapping[musicId].purchaseAmount > thresholdForPurchase){
                 updateMusicPurchaseLeaderboard(musicId);
             }
         }
@@ -265,7 +286,6 @@ contract ContentVault is UserVault{
 
     function searchMusidIdinPurchaseLeaderboard(uint musicId) view internal returns (bool){
         uint len = musicPurchaseLeaderboard.length;
-        uint indMin = 0;
         for (uint ind = 0; ind < len; ind++){
             if (musicPurchaseLeaderboard[ind] == musicId){
                 return true;
@@ -280,22 +300,22 @@ contract ContentVault is UserVault{
         uint indMin = 0;
         uint valueMin = type(uint256).max;
         for (uint ind = 0; ind < len; ind++){
-            if (musicId2MusicSellInfoMapping[musicPurchaseLeaderboard[ind]].purchaseAmount < valueMin){
+            if (musicId2MusicMapping[musicPurchaseLeaderboard[ind]].purchaseAmount < valueMin){
                 indMin = ind;
-                valueMin = musicId2MusicSellInfoMapping[musicPurchaseLeaderboard[ind]].purchaseAmount;
+                valueMin = musicId2MusicMapping[musicPurchaseLeaderboard[ind]].purchaseAmount;
             }
         }
-        if (valueMin < musicId2MusicSellInfoMapping[musicId].purchaseAmount){
+        if (valueMin < musicId2MusicMapping[musicId].purchaseAmount){
             thresholdForPurchase = valueMin;
             musicPurchaseLeaderboard[indMin] = musicId;
-            emit leadBoardRefresh();
+            emit leaderBoardRefresh();
         }
     }
 
     // same as purchaseAmount
     function updateMusicVote(uint256 musicId, uint256 amount,uint256 amountToPay) internal{
-        musicId2MusicSellInfoMapping[musicId].voteAmount += amount;
-        musicId2MusicSellInfoMapping[musicId].voteRevenue += amountToPay;
+        musicId2MusicMapping[musicId].voteAmount += amount;
+        musicId2MusicMapping[musicId].voteRevenue += amountToPay;
 
         if (searchMusidIdinVoteLeaderboard(musicId)){
             return;
@@ -303,9 +323,9 @@ contract ContentVault is UserVault{
 
         if (musicVoteLeaderboard.length < LEADERBORAD_LENGTH){
             musicVoteLeaderboard.push(musicId);
-            emit leadBoardRefresh();
+            emit leaderBoardRefresh();
         }else{
-            if (musicId2MusicSellInfoMapping[musicId].voteAmount > thresholdForVote){
+            if (musicId2MusicMapping[musicId].voteAmount > thresholdForVote){
                 updateMusicVoteLeaderboard(musicId);
             }
         }
@@ -313,7 +333,6 @@ contract ContentVault is UserVault{
 
     function searchMusidIdinVoteLeaderboard(uint musicId) view internal returns (bool){
         uint len = musicVoteLeaderboard.length;
-        uint indMin = 0;
         for (uint ind = 0; ind < len; ind++){
             if (musicVoteLeaderboard[ind] == musicId){
                 return true;
@@ -327,15 +346,15 @@ contract ContentVault is UserVault{
         uint indMin = 0;
         uint valueMin = type(uint256).max;
         for (uint ind = 0; ind < len; ind++){
-            if (musicId2MusicSellInfoMapping[musicVoteLeaderboard[ind]].voteAmount < valueMin){
+            if (musicId2MusicMapping[musicVoteLeaderboard[ind]].voteAmount < valueMin){
                 indMin = ind;
-                valueMin = musicId2MusicSellInfoMapping[musicVoteLeaderboard[ind]].voteAmount;
+                valueMin = musicId2MusicMapping[musicVoteLeaderboard[ind]].voteAmount;
             }
         }
-        if (valueMin < musicId2MusicSellInfoMapping[musicId].voteAmount){
+        if (valueMin < musicId2MusicMapping[musicId].voteAmount){
             thresholdForVote = valueMin;
             musicVoteLeaderboard[indMin] = musicId;
-            emit leadBoardRefresh();
+            emit leaderBoardRefresh();
         }
     }
 
@@ -375,11 +394,11 @@ contract ContentVault is UserVault{
         return owner2MusicIdMapping[_user].length;
     }
 
-    function getBuyerMusicNumber(address _user) public view returns(uint256){
-        return buyer2MusicIdMapping[_user].length;
+    function getCollectorMusicNumber(address _user) public view returns(uint256){
+        return collector2MusicIdMapping[_user].length;
     }
 
-    function getOwneMusicIdList(address _user) public view returns(uint256[] memory){
+    function getOwnerMusicIdList(address _user) public view returns(uint256[] memory){
         uint256 len = getOwnerMusicNumber(_user);
         uint256[] memory list = new uint256[](len);
         for (uint i = 0; i < len; i++){
@@ -388,16 +407,13 @@ contract ContentVault is UserVault{
         return list;
     }
 
-    function getBuyerMusicIdList(address _user) public view returns(uint256[] memory){
-        uint256 len = getBuyerMusicNumber(_user);
+    function getCollectorMusicIdList(address _user) public view returns(uint256[] memory){
+        uint256 len = getCollectorMusicNumber(_user);
         uint256[] memory list = new uint256[](len);
         for (uint i = 0; i < len; i++){
-            list[i] = buyer2MusicIdMapping[_user][i];
+            list[i] = collector2MusicIdMapping[_user][i];
         }
         return list;
     }
 
-    function getMusicNumber() public view returns(uint256){
-        return vaultNFT.tokenNumber();
-    }
 }

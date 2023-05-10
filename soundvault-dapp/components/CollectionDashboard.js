@@ -67,7 +67,7 @@ export default function CollectionDashboard(){
     }
 
     const getMusicByIdInDetail = async (val) => {
-        console.log(1);
+        console.log(val);
         let id;
 
         // @todo optimize

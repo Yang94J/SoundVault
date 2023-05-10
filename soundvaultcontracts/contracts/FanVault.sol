@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import "./ContentVault.sol";
@@ -39,12 +39,11 @@ contract FanVault is ContentVault {
         for (uint ind = 0; ind < fanNum; ind++){
             address fan = IERC721(fanNFT).ownerOf(ind);
             if (fanNFTFactory.getFanContribution(fanNFT, fan) > contributeEntry){
-                if (musicId2BuyerAmountMapping[musicId][fan]==0){
-                    musicId2BuyerAmountMapping[musicId][fan] = 1;
-                    buyer2MusicIdMapping[fan].push(musicId);
+                if (musicId2CollectorAmountMapping[musicId][fan]==0){
+                    musicId2CollectorAmountMapping[musicId][fan] = 1;
+                    collector2MusicIdMapping[fan].push(musicId);
                 }
             }
-
         }
     }
 
@@ -56,5 +55,16 @@ contract FanVault is ContentVault {
     function getFanContribution(address _author, address _fan) public view returns (uint256){
         require(address2UserMapping[_author].fanNFT != address(0),"no fanclub");
         return fanNFTFactory.getFanContribution(address2UserMapping[_author].fanNFT, _fan);
+    }
+
+    // Check if an address can be followed or not
+    function canBeFollowed(address author) public view returns (bool){
+        return (address2UserMapping[author].fanNFT != address(0));
+    }
+
+    // Check if the address has been followed
+    function isFollower(address author, address fan) public view returns (bool){
+        address fanNFT = address2UserMapping[author].fanNFT;
+        return (fanNFT != address(0) && IERC721(fanNFT).balanceOf(fan)!=0);
     }
 }

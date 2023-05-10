@@ -64,10 +64,6 @@ describe("MusicVault", function () {
         return { musicVault, vaultToken, vaultNFT, fanNFTFactory, owner, alice, bob, young};
     }
 
-    async function deployAndUploadFixture(){
-
-    }
-
 
 
     describe("DeployStatus", function (){
@@ -137,8 +133,8 @@ describe("MusicVault", function () {
 
             await expect(musicVault.connect(alice).uploadMusic(
                 "musicName",
-                "",
-                0,
+                "musicDescription",
+                "hello",
                 MUSIC_FEE,
                 "test"
                 )
@@ -147,12 +143,13 @@ describe("MusicVault", function () {
                 [owner,alice],
                 [MUSIC_VAULT_UPLOAD_FEE,-MUSIC_VAULT_UPLOAD_FEE]
             );
-            expect((await musicVault.getOwneMusicIdList(alice.address)).length).to.equal(1);
-            const musicId = (await musicVault.getOwneMusicIdList(alice.address))[0];
+            expect((await musicVault.getOwnerMusicIdList(alice.address)).length).to.equal(1);
+            const musicId = (await musicVault.getOwnerMusicIdList(alice.address))[0];
             expect ((await musicVault.musicId2MusicMapping(musicId)).musicId).to.equal(musicId);
-            expect (await musicVault.contentUploadedMapping(0)).to.equal(true);
+            expect (await musicVault.contentUploadedMapping("hello")).to.equal(true);
             expect (await musicVault.address2IsUserMapping(alice.address)).to.equal(true);
             expect (await musicVault.userNumber()).to.equal(1);
+            expect (await musicVault.musicNumber()).to.equal(1);
             expect (await vaultNFT.ownerOf(musicId)).to.equal(alice.address);
         });
 
@@ -168,23 +165,23 @@ describe("MusicVault", function () {
         it("Mint 2, Success", async function(){
             const {musicVault, vaultToken, vaultNFT, fanNFTFactory, owner, alice, bob, young} = await loadFixture(deployFixture);
             await (await musicVault.connect(alice).uploadMusic(
-                "musicName","",0,MUSIC_FEE,"test")).wait();
+                "musicName","","a",MUSIC_FEE,"test")).wait();
             expect (await vaultNFT.tokenNumber()).to.equal(1);
             await (await musicVault.connect(alice).uploadMusic(
-                "musicName","",1,MUSIC_FEE,"test")).wait();
+                "musicName","","b",MUSIC_FEE,"test")).wait();
             expect (await vaultNFT.tokenNumber()).to.equal(2);
         })
 
         it("Purchase", async function(){
             const {musicVault, vaultToken, vaultNFT, fanNFTFactory, owner, alice, bob, young} = await loadFixture(deployFixture);
             await (await musicVault.connect(alice).uploadMusic(
-                "musicName","",0,MUSIC_FEE,"test")).wait();
-            const musicId = (await musicVault.getOwneMusicIdList(alice.address))[0];
+                "musicName","","music0",MUSIC_FEE,"test")).wait();
+            const musicId = (await musicVault.getOwnerMusicIdList(alice.address))[0];
             console.log("1st Id : %d",musicId);
 
             await expect(musicVault.connect(alice).purchaseMusic(
                 musicId,1
-            )).to.be.revertedWith("not for author");
+            )).to.be.revertedWith("already owned");
 
             await expect(musicVault.connect(bob).purchaseMusic(
                 musicId,1
@@ -202,7 +199,7 @@ describe("MusicVault", function () {
 
             await expect(musicVault.connect(bob).purchaseMusic(
                 musicId,2
-            )).to.be.revertedWith("only Purchase Once");
+            )).to.be.revertedWith("already owned");
 
             await expect(musicVault.connect(young).purchaseMusic(
                 musicId,1
@@ -215,8 +212,8 @@ describe("MusicVault", function () {
             expect (await musicVault.userNumber()).to.equal(3);
 
             await (await musicVault.connect(alice).uploadMusic(
-                "musicName","",1,MUSIC_FEE,"test")).wait();
-            const musicId2 = (await musicVault.getOwneMusicIdList(alice.address))[1];
+                "musicName","","music1",MUSIC_FEE,"test")).wait();
+            const musicId2 = (await musicVault.getOwnerMusicIdList(alice.address))[1];
             console.log("2nd Id : %d",musicId2);
 
 
@@ -238,12 +235,12 @@ describe("MusicVault", function () {
             const {musicVault, vaultToken, vaultNFT, fanNFTFactory, owner, alice, bob, young} = await loadFixture(deployFixture);
             await (await musicVault.connect(alice).uploadMusic(
                 "musicName","",0,MUSIC_FEE,"test")).wait();
-            const musicId = (await musicVault.getOwneMusicIdList(alice.address))[0];
+            const musicId = (await musicVault.getOwnerMusicIdList(alice.address))[0];
             console.log("1st Id : %d",musicId);
             await (await musicVault.connect(bob).purchaseMusic(
                 musicId,1)).wait();
             await expect(musicVault.connect(alice).voteMusic(musicId,1))
-                .to.be.revertedWith("not for author");
+                .to.be.revertedWith("already voted");
             await expect(musicVault.connect(bob).voteMusic(musicId,1)).to.changeTokenBalances(
                 vaultToken,
                 [alice,bob],
@@ -261,15 +258,15 @@ describe("MusicVault", function () {
             expect((await musicVault.address2UserMapping(alice.address)).fanNFT).to.equal(ethers.constants.AddressZero);
             await expect(musicVault.connect(bob).followMusician(alice.address)).to.be.revertedWith("no fanclub");
             await expect (musicVault.getFanNumber(alice.address)).to.be.revertedWith("no fanclub");
-            await (await musicVault.connect(alice).createFanNFT()).wait();
+            await (await musicVault.connect(alice).createFanNFT("aliceFanClub")).wait();
             expect((await musicVault.address2UserMapping(alice.address)).fanNFT).to.not.equal(ethers.constants.AddressZero);
             expect (await musicVault.userNumber()).to.equal(1);
             expect (await musicVault.getFanNumber(alice.address)).to.equal(1);
             await expect(musicVault.connect(alice).followMusician(alice.address)).to.be.revertedWith("not eligible");
             await expect(musicVault.connect(bob).followMusician(alice.address)).to.be.revertedWith("not eligible");
             await (await musicVault.connect(alice).uploadMusic(
-                "musicName","",0,MUSIC_FEE,"test")).wait();
-            const musicId = (await musicVault.getOwneMusicIdList(alice.address))[0];
+                "musicName","","music",MUSIC_FEE,"test")).wait();
+            const musicId = (await musicVault.getOwnerMusicIdList(alice.address))[0];
             expect (await musicVault.userNumber()).to.equal(1);
             await (await musicVault.connect(bob).purchaseMusic(
                 musicId,1)).wait();
@@ -287,10 +284,10 @@ describe("MusicVault", function () {
 
         it("fanclub donate", async function(){
             const {musicVault, vaultToken, vaultNFT, fanNFTFactory, owner, alice, bob, young} = await loadFixture(deployFixture);
-            await (await musicVault.connect(alice).createFanNFT()).wait();
+            await (await musicVault.connect(alice).createFanNFT("nft1")).wait();
             await (await musicVault.connect(alice).uploadMusic(
                 "musicName","",0,MUSIC_FEE,"test")).wait();
-            const musicId = (await musicVault.getOwneMusicIdList(alice.address))[0];
+            const musicId = (await musicVault.getOwnerMusicIdList(alice.address))[0];
             await (await musicVault.connect(bob).purchaseMusic(
                 musicId,1)).wait();
             await expect(musicVault.connect(bob).donateToAuthor(alice.address,MUSIC_FEE))
@@ -309,16 +306,14 @@ describe("MusicVault", function () {
             await ethers.provider.send("hardhat_mine", ["0x500"]);
             await (await musicVault.connect(bob).donateToAuthor(alice.address,2n * MUSIC_FEE)).wait();
             expect (await musicVault.getFanContribution(alice.address,bob.address)).to.equal(6);
-
-            
         });
 
         it("airdrop", async function(){
             const {musicVault, vaultToken, vaultNFT, fanNFTFactory, owner, alice, bob, young} = await loadFixture(deployFixture);
-            await (await musicVault.connect(alice).createFanNFT()).wait();
+            await (await musicVault.connect(alice).createFanNFT("nft1")).wait();
             await (await musicVault.connect(alice).uploadMusic(
-                "musicName","",0,MUSIC_FEE,"test")).wait();
-            const musicId = (await musicVault.getOwneMusicIdList(alice.address))[0];
+                "musicName","","music1",MUSIC_FEE,"test")).wait();
+            const musicId = (await musicVault.getOwnerMusicIdList(alice.address))[0];
             await (await musicVault.connect(bob).purchaseMusic(
                 musicId,1)).wait();
             await (await musicVault.connect(bob).followMusician(alice.address)).wait();
@@ -327,12 +322,12 @@ describe("MusicVault", function () {
                 musicId,1)).wait();
             await (await musicVault.connect(young).followMusician(alice.address)).wait();
             await (await musicVault.connect(alice).uploadMusic(
-                "musicName","",1,MUSIC_FEE,"test")).wait();
-            const musicId2 = (await musicVault.getOwneMusicIdList(alice.address))[1];
+                "musicName","","music2",MUSIC_FEE,"test")).wait();
+            const musicId2 = (await musicVault.getOwnerMusicIdList(alice.address))[1];
             await expect(musicVault.connect(bob).airdropMusic(musicId2,3)).to.be.revertedWith("author required");
             await (await musicVault.connect(alice).airdropMusic(musicId2,3)).wait();
-            expect(await musicVault.musicId2BuyerAmountMapping(musicId2,bob.address)) .to.equal(1);
-            expect(await musicVault.musicId2BuyerAmountMapping(musicId2,young.address)) .to.equal(0);
+            expect(await musicVault.musicId2CollectorAmountMapping(musicId2,bob.address)) .to.equal(1);
+            expect(await musicVault.musicId2CollectorAmountMapping(musicId2,young.address)) .to.equal(0);
 
         });
     });
