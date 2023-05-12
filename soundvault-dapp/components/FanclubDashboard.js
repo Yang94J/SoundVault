@@ -2,6 +2,8 @@ import Chatbar from "./ui/Chatbar/Chatbar";
 import DialogWindow from "./ui/DialogWindow/DialogWindow";
 import { login, instance } from "@/libs/web3mq";
 import { useState , useEffect} from 'react';
+import { ethers } from "ethers";
+
 
 
 export default function FanclubDashboard(){
@@ -11,16 +13,18 @@ export default function FanclubDashboard(){
 
   useEffect(() => {
     async function fetchDataAsync() {
+
+      let provider = new ethers.providers.Web3Provider(window.ethereum);
+      await window.ethereum.request({ method: "eth_requestAccounts" });
+      let signer = provider.getSigner();
+      let account = await signer.getAddress();
+
+
       if (instance == undefined){
-        await login();
+        await login({"account":account,"signer":signer});
       }
 
       console.log("fetchData");
-
-      // await client.channel.createRoom({
-      //     // groupName: "test",
-      //     groupid: "123"
-      // });
 
       instance.on('channel.getList', listenEvent);
       instance.on('channel.activeChange',listenEvent);
@@ -62,7 +66,6 @@ export default function FanclubDashboard(){
     console.log("change active channel")
     console.log('your selected channel is ', channelList[ind]);
     instance.channel.setActiveChannel(channelList[ind]);
-    instance.message.sendMessage('hello channel');
     await await instance.message.getMessageList({
         page: 1, size: 20
       });
@@ -77,7 +80,7 @@ export default function FanclubDashboard(){
 
 
     return(
-        <div className="overflow-auto w-full h-full relative flex z-0 h-[767px] ">
+        <div className="overflow-auto w-full h-full relative flex z-0 min-h-[767px] max-h-[767px]">
             <Chatbar list={channelList} cbs={{"clickChat":clickChat}}/>
             <DialogWindow list={msgList} cbs={{"sendMsg":sendMsg}}/>
         </div>

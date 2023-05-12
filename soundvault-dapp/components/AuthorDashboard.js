@@ -10,6 +10,10 @@ import { Snackbar, Alert } from "@mui/material";
 import UploadForm from "./UploadForm";
 import { uploadFile,uploadJson } from "@/libs/Ipfs";
 import { login, instance } from "@/libs/web3mq";
+import getVaultToken from "@/libs/vaultToken";
+
+
+const CREATE_BASE_FEE = ethers.utils.parseUnits("10","ether").toString();
 
 export default function AuthorDashboard(){
 
@@ -21,7 +25,7 @@ export default function AuthorDashboard(){
     const [totalVotes, setTotalVotes] = useState(-1);
     const [totalFanNumber,setTotalFanNumber] = useState(-1);
     const [musicList,setMusicList] = useState([])
-    const [fanNFT,setFanNFT] = useState('0x0000000000000000000000000000000000000000');
+    const [fanNFT,setFanNFT] = useState(ethers.constants.AddressZero);
 
     const [openS, setOpenS] = useState(false);
     const [openE, setOpenE] = useState(false);
@@ -40,6 +44,7 @@ export default function AuthorDashboard(){
     let account;
     let provider;
     let musicVault;
+    let vaultToken;
     let signer;
 
     // useEffect(() => {
@@ -80,8 +85,7 @@ export default function AuthorDashboard(){
         const tmp = await Promise.all(ownerMusicIdList.map(async (val) => {
             let id = val.toNumber();
             let musicInfo = await musicVault.musicId2MusicMapping(id);
-            let musicSellInfo = await musicVault.musicId2MusicSellInfoMapping(id);
-            return ({...musicInfo, ...musicSellInfo});
+            return musicInfo;
         }));
         setMusicList(tmp);
     }
@@ -95,14 +99,21 @@ export default function AuthorDashboard(){
         musicVault = getMusicVault(provider);
 
         console.log("creating NFT");
+
+            if (fanNFT != ethers.constants.AddressZero){
+                console.log("already created ...");
+                return;
+            }
+
         try{
             await(await musicVault.connect(signer).createFanNFT(account.slice(-4)+"-FAN")).wait();
             
             if (instance == undefined){
-                await login();
+                await login({"account":account,"signer":signer});
             }
 
             let channel;
+
             instance.on("channel.getList",async (props)=>{
                 const { channelList} = instance.channel;
                 channel = channelList[0];
@@ -112,6 +123,12 @@ export default function AuthorDashboard(){
 
             await instance.channel.createRoom({
                 group_name: account.slice(-4)+"--FanClub",
+                permissions: {
+                    "group:join": {
+                        type: "enum",
+                        value: "public"
+                    }
+                }
             })
             await instance.channel.queryChannels({
             });
@@ -128,34 +145,50 @@ export default function AuthorDashboard(){
         console.log("creating music");
 
         // to comment
+        provider = new ethers.providers.Web3Provider(window.ethereum);
         musicVault = getMusicVault(provider);
+        vaultToken = getVaultToken(provider);
         console.log(params);
         signer = provider.getSigner();
+        account = await signer.getAddress();
 
-        try{
+
+        // try{
 
             const uploadMusicRes = await uploadFile(params.musicFile);            
             let data = {
                 "name": params.musicName,
                 "description": params.musicDescription,
-                "image": "ipfs://bafybeiekqloms77qy6aix3tontmuvbbl3iaijekxnrlfxju5xshrzijbse/certificate.jpg",
+                "image": "ipfs://bafybeigecfa5qopre7crfpa24ppasjvtlgbayxww37e2w3b342zz4gl46u/music.jpg",
                 "music": uploadMusicRes.cid,
             }
             const uploadJsonRes = await uploadJson(data);
+            
+            vaultToken = getVaultToken(provider);
+            console.log(await vaultToken.balanceOf(account).toString());
+            await vaultToken.connect(signer).approve(musicVault.address,CREATE_BASE_FEE);
+
+            console.log(params.musicName,
+                params.musicDescription,
+                uploadMusicRes.cid,
+                ethers.utils.parseUnits(params.musicPrice, "ether").toString(),
+                uploadJsonRes.ipfs)
+
             await (await musicVault.connect(signer).uploadMusic(
                 params.musicName,
                 params.musicDescription,
-                uploadJsonRes.hash,
+                uploadMusicRes.cid,
                 ethers.utils.parseUnits(params.musicPrice, "ether").toString(),
                 uploadJsonRes.ipfs
             )).wait();
+
             setOpenS(true);
             console.log("Success");
-        }catch {
-            setOpenE(true);
-            console.log("Failure");
-        }
-        setOpenDialog(false);
+        // }catch {
+        //     setOpenE(true);
+        //     console.log("Failure");
+        // }
+        // setOpenDialog(false);
     }
 
     return(

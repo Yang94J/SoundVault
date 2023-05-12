@@ -20,58 +20,75 @@ const generateTopic = (address) => {
 let instance = undefined;
 // ------------------------------- web3mq login --------------------------------------------
 
-// You can save the bestEndpointUrl locally to skip endpoint search next time, which will save time, and
+const login = async (params) => {
 
+    const password = Web3MQApi.password;
 
-const login = async () => {
-    const password = Web3MQApi.passworc;
     const didType = 'eth' // or 'starknet';
+    const didValue = params.account;
+
 
     const bestEndpointUrl = await Client.init({
         connectUrl: '', //
         app_key: Web3MQApi.appId, // temporary authorization key obtained by applying, will be removed in future testnets and mainnet
     });
 
+
 // 1. connect wallet and get user
-    const {address: didValue} = await Client.register.getAccount(didType);
     const {userid, userExist} = await Client.register.getUserInfo({
+        did_value:  didValue,
+        did_type: didType,
+    });
+
+
+    // 2. create main key pairs
+    
+    const {signContent} = await Client.register.getMainKeypairSignContent({
+        password: password,
         did_value: didValue,
         did_type: didType,
     });
 
-    console.log("get User ", didValue);
+    const signature = await (params.signer).signMessage(signContent);
 
-// 2. create main key pairs
-    const {publicKey: localMainPublicKey, secretKey: localMainPrivateKey} = await Client.register.getMainKeypair({
-        password,
-        did_value: didValue,
-        did_type: didType,
-    });
+    const {publicKey, secretKey} = await Client.register.getMainKeypairBySignature(
+        signature,
+        password
+    );
 
+      
     if (!userExist) {
-//    register func
+        console.log("registering ...");
         const {signContent} = await Client.register.getRegisterSignContent({
             userid,
-            mainPublicKey: localMainPublicKey,
+            mainPublicKey: publicKey,
             didType,
             didValue,
         });
-        const {sign: signature, publicKey: did_pubkey = ""} =
-            await Client.register.sign(signContent, didValue, didType);
-        const params = {
+
+        console.log("Sign msg for register")
+        const signature = await (params.signer).signMessage(signContent);
+
+        const did_pubkey = '';
+        
+        const registerParams = {
             userid,
             didValue,
-            mainPublicKey: localMainPublicKey,
+            mainPublicKey: publicKey,
             did_pubkey,
             didType,
-            nickname: "",
-            avatar_url: `https://cdn.stamp.fyi/avatar/${didValue}?s=300`,
+            nickname: '',
+            avatar_url: '',
             signature,
         };
-        const registerRes = await Client.register.register(params);
+
+        const registerRes = await Client.register.register(registerParams);
         console.log(registerRes)
     }
-// login func
+
+
+// // login func
+    console.log("login");
     const {
         tempPrivateKey,
         tempPublicKey,
@@ -80,8 +97,8 @@ const login = async () => {
         mainPublicKey,
     } = await Client.register.login({
         password,
-        mainPublicKey: localMainPublicKey,
-        mainPrivateKey: localMainPrivateKey,
+        mainPublicKey: publicKey,
+        mainPrivateKey: secretKey,
         userid,
         didType,
         didValue,

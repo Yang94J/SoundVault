@@ -22,8 +22,9 @@ export default function UploadForm({cbs}){
     }
 
     return (
-        <div className="flex items-end justify-center p-4 text-center sm:items-center sm:p-0">
-            <div className="fixed transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+        <div className=" flex items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div className="fixed top-[60px] left-[600px]  transform overflow-auto rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+
                 <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                 <div className="sm:flex sm:items-start">
                     <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
@@ -39,7 +40,7 @@ export default function UploadForm({cbs}){
                                     <label htmlFor="musicname" className="block text-sm font-medium leading-6 text-gray-900">MusicName</label>
                                     <div className="mt-2">
                                         <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 sm:max-w-md">
-                                            <input type="text" name="musicname" id="musicname" autoComplete="musicname" className="block flex-1 border-0 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6" placeholder="music" />
+                                            <input type="text" name="musicname" id="musicname" autoComplete="musicname" className="block flex-1 border-0 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6" placeholder="plz input your music name here" />
                                         </div>
                                     </div>
                                 </div>
@@ -48,26 +49,26 @@ export default function UploadForm({cbs}){
                             <div className="col-span-full">
                                 <label htmlFor="about" className="block text-sm font-medium leading-6 text-gray-900">description</label>
                                 <div className="mt-2">
-                                    <textarea id="description" name="about" rows="3" className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"></textarea>
+                                    <textarea id="description" name="about" rows="3" className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                        placeholder="plz input the description of your music here"
+                                    >
+                                    </textarea>
                                 </div>
-                                <p className="mt-3 text-sm leading-6 text-gray-600">Write a few description about your music</p>
                             </div>
 
                             <div className="col-span-full">
                                 <label htmlFor="cover-photo" className="block text-sm font-medium leading-6 text-gray-900">Music Upload</label>
                                 <div className="mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-10">
                                     <div className="text-center">
-                                        <svg className="mx-auto h-12 w-12 text-gray-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                                            <path fillRule="evenodd" d="M1.5 6a2.25 2.25 0 012.25-2.25h16.5A2.25 2.25 0 0122.5 6v12a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 18V6zM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0021 18v-1.94l-2.69-2.689a1.5 1.5 0 00-2.12 0l-.88.879.97.97a.75.75 0 11-1.06 1.06l-5.16-5.159a1.5 1.5 0 00-2.12 0L3 16.061zm10.125-7.81a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0z" clipRule="evenodd" />
-                                        </svg>
+                                        <svg className="mx-auto h-12 w-12 text-gray-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.927 17.687l-.125 1c-2.648-.756-4.731-2.839-5.488-5.488l1-.125c.682 2.195 2.418 3.93 4.613 4.613zm2.073 2.313c-4.963 0-9-4.038-9-9s4.037-9 9-9 9 4.038 9 9l-.008.15c.695.141 1.354.382 1.965.701.022-.282.043-.564.043-.851 0-6.075-4.925-11-11-11s-11 4.925-11 11 4.925 11 11 11c.287 0 .569-.021.852-.043-.32-.611-.561-1.27-.701-1.965l-.151.008zm0-6c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3zm0-1c1.103 0 2-.897 2-2s-.897-2-2-2-2 .897-2 2 .897 2 2 2zm-1.818 2.646c-1.293-.508-2.319-1.534-2.827-2.827l-1.025.128c.6 1.746 1.979 3.125 3.725 3.724l.127-1.025zm14.818 2.854c0 3.037-2.463 5.5-5.5 5.5s-5.5-2.463-5.5-5.5 2.463-5.5 5.5-5.5 5.5 2.463 5.5 5.5zm-3 1.5h-5v1h5v-1zm0-1l-2.5-3-2.5 3h5zm-5.354-9.818l1.025-.128c-.6-1.746-1.979-3.125-3.725-3.725l-.128 1.025c1.293.508 2.32 1.535 2.828 2.828zm3.041-.38c-.756-2.649-2.839-4.732-5.488-5.489l-.125 1c2.195.682 3.931 2.418 4.613 4.613l1-.124z"/></svg>
                                         <div className="mt-4 flex text-sm leading-6 text-gray-600">
                                             <label htmlFor="file-upload" className="relative cursor-pointer rounded-md bg-white font-semibold text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-600 focus-within:ring-offset-2 hover:text-indigo-500">
                                                 <span>Upload your music here</span>
                                                 <input id="file-upload" name="file-upload" type="file" className="sr-only" />
                                             </label>
-                                            <p className="pl-1">or drag and drop</p>
+                                            <p className="pl-1"> via clicking</p>
                                         </div>
-                                        <p className="text-xs leading-5 text-gray-600">PNG, JPG, GIF up to 10MB</p>
+                                        <p className="text-xs leading-5 text-gray-600">up to 20MB</p>
                                     </div>
                                 </div>
                             </div>

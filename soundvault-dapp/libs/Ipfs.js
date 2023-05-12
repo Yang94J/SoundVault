@@ -21,7 +21,6 @@ const uploadJson = async function(data) {
     const resp = {
         "cid" : res.cid,
         "ipfs" : res.ipfs,
-        "hash" : getHashInt(res.cid),
     };
 
     return resp;

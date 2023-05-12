@@ -70,7 +70,8 @@ export default function MusicBox({url}){
         document.getElementById("playmusicName").textContent = "Playing "+changeSongName+" ...";
  
 
-        const cid = "bafybeidqcmtnkuoled2sycscuqsd3qlb55utfc6wzwsu6y2qhh5otljvu4";
+        const cid = musicList[ind].cid;
+        console.log(cid);
         const video = document.getElementById("playmusic");
         video.setAttribute("src",IPFS_AUDIOPREFIX+cid);
         video.play();

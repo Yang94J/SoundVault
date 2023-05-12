@@ -33,6 +33,11 @@ export default function MusicAcheteCards({music,credit,cbs}){
         await cbs.vote(id,voteNumber);
     }
 
+    const follow = async () => {
+        const author = music.author;
+        await cbs.follow(author);
+    }
+
     return(
         <div className="flex rounded-lg shadow-sm divide-y divide-zinc-600 bg-zinc-900">
             <div className='w-1/2 flex flex-col items-center justify-around'>
@@ -47,15 +52,24 @@ export default function MusicAcheteCards({music,credit,cbs}){
                             {music.author.slice(-4)}
                         </span>
                         {
-                            (!music.isFan) ?
-                            (
-                                <button className="text-gray-400 hover:text-white focus:outline-none">
-                                follow
-                                </button>
+                            (music.canBeFollowed) ? (
+
+                                (!music.isFollower) ?
+                                (
+                                    <button className="text-gray-400 hover:text-white focus:outline-none"
+                                        onClick={follow}>
+                                    follow
+                                    </button>
+                                ) :
+                                (
+                                    <p className="text-gray-400 hover:text-white focus:outline-none">
+                                    followed
+                                    </p>
+                                )
                             ) :
                             (
                                 <p className="text-gray-400 hover:text-white focus:outline-none">
-                                followed
+                                    no fanClub
                                 </p>
                             )
                         }
@@ -83,7 +97,7 @@ export default function MusicAcheteCards({music,credit,cbs}){
                                     </div>
                                 </div>
                             ): (
-                                <h2 className="text-2xl font-bold text-white mb-4">Bought {music.bought}</h2>
+                                <h2 className="text-2xl font-bold text-white mb-4">Collect {music.bought}</h2>
                             )
                         }
 

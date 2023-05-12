@@ -6,6 +6,7 @@ import { ethers } from 'ethers';
 import StatisticCard from './ui/StatisticCard/StatisticCard';
 import LeaderBoard from './ui/LeaderBoard/LeaderBoard';
 import MusicAcheteCards from './ui/musicAcheteCards/MusicAcheteCards';
+import { instance, login } from '@/libs/web3mq';
 
 export default function ExploreDashboard(){
 
@@ -92,12 +93,15 @@ export default function ExploreDashboard(){
         }
 
         let musicInfo = await musicVault.musicId2MusicMapping(id);
-        let musicSellInfo = await musicVault.musicId2MusicSellInfoMapping(id);
-        let music = {...musicInfo, ...musicSellInfo};
 
-        music.isFan = false;
-        music.bought = (await musicVault.musicId2BuyerAmountMapping(id,account)).toNumber();
-        music.voted =  (await musicVault.musicId2BuyerVoteAmountMapping(id,account)).toNumber();
+        let music = {...musicInfo};
+
+        music.canBeFollowed = await musicVault.canBeFollowed(music.author);
+        console.log(music.canBeFollowed);
+        music.isFollower = await musicVault.isFollower(music.author,account);
+        console.log(music.isFollower);
+        music.bought = (await musicVault.musicId2CollectorAmountMapping(id,account)).toNumber();
+        music.voted =  (await musicVault.musicId2CollectorVoteAmountMapping(id,account)).toNumber();
 
         console.log(music);
         return music;
@@ -149,12 +153,28 @@ export default function ExploreDashboard(){
         console.log("vote music");
     }
 
+    const follow = async (author) => {
+        // to comment
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+        signer = provider.getSigner();
+        account = await signer.getAddress();
+        musicVault = getMusicVault(provider);
+
+        await musicVault.connect(signer).followMusician(author);
+        if (instance == undefined){
+            await login({"account":account,"signer":signer});
+        }
+        const chatid = await musicVault.address2UserMapping(author).chatId;
+        await instance.channel.joinGroup(chatid);
+    }
+
     return (
-        <section className="bg-black max-h-[767px] min-h-[767px]">
-            <div className="w-full mx-auto py-8 sm:py-8 px-4 sm:px-6 lg:px-8 ">   
+        <section className="bg-black min-h-[767px] max-h-[767px]    ">
+            <div className="w-full mx-auto py-8 sm:py-8 px-4 sm:px-6 lg:px-8  h-[750px]">   
                 <div className="sm:flex sm:flex-col sm:align-center h-full">
 
-                    <div className="flex bg-black text-white space-x-4 xl:grid-cols-4 h-full  h-[700px]">
+                    <div className="flex bg-black text-white space-x-4 xl:grid-cols-4 h-full ">
                         <div className="flex-grow-0 flex-shrink-0 w-1/4 border border-dashed border-white h-full ">
                             <div className="flex flex-col space-y-4 overflow-y-auto">
                                 <LeaderBoard name="Purchase" list={purchaseLeaderBoardList} className="h-1/2"/>
@@ -177,7 +197,8 @@ export default function ExploreDashboard(){
                                                 "getPurchaseFee" : getPurchaseFee,
                                                 "getVoteFee" : getVoteFee,
                                                 "purchase" : purchase,
-                                                "vote" : vote
+                                                "vote" : vote,
+                                                "follow" : follow
                                             }} />
                                         )
                                     })
