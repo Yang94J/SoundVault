@@ -43,6 +43,16 @@ MusicVault is designed for three types of users: creators, music enthusiasts, an
 - Easy Login : Web2 Auth is also intergrated to ease the login for web3 newcomers. This can reduce the threshold and help the community grow.
 - Web2 Interaction Experience : Fluent and Smooth
 
+## Future Plans
+
+Our goal is to continue developing and improving MusicVault as a decentralized music platform to empower creators and fans in the music industry.
+
+- Build a strong community: Engage with users, influencers to create a community around the platform. Provide opportunities for users to share feedback and ideas, and actively incorporate their input into future developments.
+- Expand partnerships: Collaborate with other companies and organizations in the music industry to expand the reach and impact of the platform. This can include streaming services, music festivals, and more.
+- Develop new features: Continuously innovate and add new features to the platform to keep users engaged and attract new ones. This can include things like advanced analytics, social features, and more.
+- Increase marketing efforts: Develop a strong marketing strategy to raise awareness of the platform and attract new users. This can include digital marketing, influencer partnerships, and more.
+- Embrace new technologies: Stay up-to-date with the latest technologies and trends in the music industry, and incorporate them into the platform to provide users with the best possible experience. This can include things like AI music composition, and more.
+
 ## Design
 
 The initial design is shown below :

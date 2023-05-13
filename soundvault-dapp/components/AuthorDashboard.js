@@ -175,7 +175,7 @@ export default function AuthorDashboard(){
         console.log("refreshing ...");
         setTimeout(() => {
             setRender(1-render);
-        },5000);
+        },9000);
     }
 
 

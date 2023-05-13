@@ -160,7 +160,7 @@ export default function ExploreDashboard(){
 
                     <div className="flex bg-black text-white space-x-4 xl:grid-cols-4 h-full ">
                         <div className="flex-grow-0 flex-shrink-0 w-1/4 border border-dashed border-white h-full ">
-                            <div className="flex flex-col space-y-4 overflow-y-auto">
+                            <div className="flex flex-col space-y-1 overflow-y-auto">
                                 <LeaderBoard name="Purchase" list={purchaseLeaderBoardList} className="h-1/2"/>
                                 <LeaderBoard name="Vote" list={voteLeaderBoardList} className="h-1/2"/>
                             </div>
@@ -170,7 +170,7 @@ export default function ExploreDashboard(){
                                 Exploring the world of melody..   
                             </p>
                             
-                            <div className="mt-12 space-y-4 p-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6 lg:max-w-4xl lg:mx-auto xl:max-w-none xl:mx-0 xl:grid-cols-2 overflow-y-auto">
+                            <div className="mt-12 space-y-4 p-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6 lg:max-w-4xl lg:mx-auto xl:max-w-none xl:mx-0 xl:grid-cols-2 overflow-y-auto min-h-[400px] max-h-[400px]">
                                 {
                                     musicList.map((music) => {
                                         return(

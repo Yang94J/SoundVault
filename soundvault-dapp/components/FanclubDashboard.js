@@ -28,7 +28,11 @@ export default function FanclubDashboard(){
         if (instance == undefined){
           console.log("trying to get from init");
           let accForWeb3mq = await signer.getAddress();
-          await login({"account":accForWeb3mq,"signer":signer});
+          try {
+            await login({"account":accForWeb3mq,"signer":signer});
+          } catch (error) {
+            
+          }
         }
   
         instance.on('channel.getList', listenEvent);
