@@ -84,7 +84,7 @@ export default function AuthorDashboard(){
         }
 
         try{
-            await(await musicVault.connect(signer).createFanNFT(account.slice(-4)+"-FAN")).wait();
+            await(await musicVault.connect(signer).createFanNFT(account.slice(-4)+"-BNBFAN")).wait();
             
             let accForWeb3mq = await signer.getAddress();
             if (instance == undefined){

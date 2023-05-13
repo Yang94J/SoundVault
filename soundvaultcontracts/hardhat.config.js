@@ -4,6 +4,7 @@ require('dotenv').config()
 
 const GANACHE_PRIVATE_KEYS = process.env.Ganache.split(",");
 const GETH_PRIVATE_KEYS = process.env.GETH.split(",");
+const BSCTEST_PRIVATE_KEYS = process.env.BNBTest.split(",");
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
@@ -30,7 +31,7 @@ module.exports = {
       accounts : GANACHE_PRIVATE_KEYS
     },
     bsctest : {
-      accounts : [process.env.BNBTest],
+      accounts : BSCTEST_PRIVATE_KEYS,
       url : "https://data-seed-prebsc-1-s3.binance.org:8545/"
     },
     geth : {

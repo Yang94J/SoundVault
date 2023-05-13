@@ -1,17 +1,17 @@
 const path = require("path");
 
-const FANNFT_TOKENURI = "ipfs://bafybeigecfa5qopre7crfpa24ppasjvtlgbayxww37e2w3b342zz4gl46u/music.jpg";
+const FANNFT_TOKENURI = "https://bafybeigecfa5qopre7crfpa24ppasjvtlgbayxww37e2w3b342zz4gl46u.ipfs.w3s.link/music.jpg";
 
 const VAULT_TOKEN_SUPPLY = 10_000;
 const VAULT_TOKEN_NAME = "vaultToken";
-const VAULT_TOKEN_SYMBOL = "VMNFT";
+const VAULT_TOKEN_SYMBOL = "VT";
 const VAULT_TOKEN_DECIMALS = 18;
 const VAULT_TOKEN_ALICE_INIT = 100;
 const VAULT_TOKEN_BOB_INIT = 100;
 const VAULT_TOKEN_JACK_INIT = 100;
 
 const VAULT_NFT_NAME = "VaultMusicNFT";
-const VAULT_NFT_SYMBOL = "VT";
+const VAULT_NFT_SYMBOL = "VMNFT";
 
 async function main() {
 
@@ -74,7 +74,7 @@ async function main() {
     console.log(user.address);
     await owner.sendTransaction({
       to: user.address,
-      value : ethers.utils.parseEther("0.2")
+      value : ethers.utils.parseEther("0.08")
     })
   }
 

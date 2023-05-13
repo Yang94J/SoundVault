@@ -1,4 +1,6 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# SouldVault Dapp Introduction
+
+The musicvault-dapp is bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
 
@@ -6,33 +8,47 @@ First, run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## configuration
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+- **Particale Network** and **Web3MQ** are important libs intergrated. PNapi.js and web3mqapi.js have to be placed under conifg/apikey folder to provide necessary api information.
+- After contract deploy, json files are generated under config/contracts folder, make sure to correctly point to the files in libs/musicVault.js and libs/vaultToken.js
+- Change settings in _app.js to change blockchain network required.
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+## Wallet
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+The project uses ether.js to deal with particle network provider:
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+```
+const web3provider = useParticleProvider();
+provider = new ethers.providers.Web3Provider(web3provider);
+musicVault = getMusicVault(provider);
+signer = provider.getSigner();
+```
 
-## Learn More
+## Interaction
 
-To learn more about Next.js, take a look at the following resources:
+The Dapp is purely web3, so there is no backend server and no user information could be selected.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## To improved
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+- UI Design : I am not an official front-end developper, so some UI design is just rough drafts. Should be improved later for better performance.
+- Interactions : Some functions including donation and airdrop are not fully realized in dapp due to time issues.
 
-## Deploy on Vercel
+## Particle Network
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Web2/Web3 user management 
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+  Thanks to particle network who provides a nice sdk of the log in/out and management of accounts. The sdk integrating web2 methods such as Google Auth2, email login, and GitHub login into web3, and the form of MPC custody is also innovative.
+
+- IPFS Gateway
+
+  With the IPFS gateway provided by Particle Network, I can quickly implement the upload and download of music files and NFT metadata.
+
+## Web3MQ
+
+- Web2-like IM
+
+  The lack of real-time interaction has always been a problem in WEB3. **Web3MQ connects creators and fans through chat rooms, which not only increases user stickiness but also provides a more user-friendly Web2-like experience, reducing the customer acquisition threshold.** I have always thought that if third-party hosted wallets and message queues can be linked together, it will be a great experience in WEB3!
+
