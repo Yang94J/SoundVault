@@ -10,61 +10,52 @@ import { instance, login } from '@/libs/web3mq';
 
 export default function ExploreDashboard(){
 
-    // const account = useAccount();  // get User Info in the hook
-    // let provider = undefined;
-    // let signer = undefined;
-    // let musicVault = undefined;
-    // let vaultToken = undefined;
-    // if (account != undefined && account != ""){
-    //     const web3provider = useParticleProvider();
-    //     provider = new ethers.providers.Web3Provider(web3provider);
-    //     musicVault = getMusicVault(provider);
-    //     vault
-    //     signer = provider.getSigner();
-    // }
-
-    // useEffect(() => {
-    //     async function fetchDataAsync() {
-    //         if (provider != undefined) {
-    //             await fetchData();
-    //         }
-    //     }
-    //     fetchDataAsync();
-    // }, [account]);
-
-    let account;
-    let provider;
-    let musicVault;
-    let vaultToken;
-    let signer;
+    const account = useAccount(); 
+    let provider = undefined;
+    let musicVault = undefined;
+    let vaultToken = undefined;
+    let signer = undefined;
 
     const [musicList,setMusicList] = useState([])
     const [purchaseLeaderBoardList,setPurchaseLeaderBoardList] = useState([])
     const [voteLeaderBoardList,setVoteLeaderBoardList] = useState([])
     const [userCredit,setUserCredit] = useState(1);
+    const [render,setRender] = useState(0);
+
+    if (account != undefined && account != ""){
+        const web3provider = useParticleProvider();
+        provider = new ethers.providers.Web3Provider(web3provider);
+        musicVault = getMusicVault(provider);
+        vaultToken = getVaultToken(provider);
+        signer = provider.getSigner();
+    }
+
+    useEffect(() => {
+        async function fetchDataAsync() {
+            if (provider != undefined) {
+                await fetchData();
+            }
+        }
+        fetchDataAsync();
+    }, [account]);
 
 
     useEffect(() => {
         async function fetchDataAsync() {
-            console.log("ether ",window.ethereum);
-            provider = new ethers.providers.Web3Provider(window.ethereum);
-            await window.ethereum.request({ method: "eth_requestAccounts" });
-            signer = provider.getSigner();
-            account = await signer.getAddress();
-            musicVault = getMusicVault(provider);
-            vaultToken = getVaultToken(provider);
-            await fetchData();
+                if (provider != undefined) {
+                    await fetchData();
+                }
             }
+        console.log("refreshing by render");
         fetchDataAsync();
-    }, []);
+    }, [render]);
+
 
     const fetchData = async function() {
-        console.log("fetching data for user profile")
+        console.log("fetching data for Explore info")
         const purchaseLeaderBoard = await musicVault.getPurchaseLeaderboard();
-        console.log(purchaseLeaderBoard)
         setPurchaseLeaderBoardList(await Promise.all(purchaseLeaderBoard.map(getMusicById)));
         const voteLeaderBoard = await musicVault.getVoteLeaderboard();
-        console.log(voteLeaderBoard)
         setVoteLeaderBoardList(await Promise.all(voteLeaderBoard.map(getMusicById)));
         const musicList = Array.from({ length: (await musicVault.musicNumber()).toNumber() }, (_, index) => index);
         setMusicList(await Promise.all(musicList.map(getMusicByIdInDetail)));
@@ -97,9 +88,8 @@ export default function ExploreDashboard(){
         let music = {...musicInfo};
 
         music.canBeFollowed = await musicVault.canBeFollowed(music.author);
-        console.log(music.canBeFollowed);
         music.isFollower = await musicVault.isFollower(music.author,account);
-        console.log(music.isFollower);
+        // music.isFollower  = false;
         music.bought = (await musicVault.musicId2CollectorAmountMapping(id,account)).toNumber();
         music.voted =  (await musicVault.musicId2CollectorVoteAmountMapping(id,account)).toNumber();
 
@@ -128,45 +118,39 @@ export default function ExploreDashboard(){
     }
 
     const purchase = async (id,amount) => {
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        musicVault = getMusicVault(provider);
-        vaultToken = getVaultToken(provider);
-        signer = provider.getSigner();
-
-
         const tokenAmount = (await musicVault.calculatePurchaseFee(id,amount)).toString();
-        await vaultToken.connect(signer).approve(musicVault.address,tokenAmount);
-        await musicVault.connect(signer).purchaseMusic(id,amount);
+        await (await vaultToken.connect(signer).approve(musicVault.address,tokenAmount)).wait();
+        await (await musicVault.connect(signer).purchaseMusic(id,amount)).wait();
         console.log("purchase music");
+        refresh();
     }
 
     const vote = async (id,amount) => {
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        musicVault = getMusicVault(provider);
-        vaultToken = getVaultToken(provider);
-        signer = provider.getSigner();
-
-
         const tokenAmount = (await musicVault.calculateVoteFee(amount)).toString();
-        await vaultToken.connect(signer).approve(musicVault.address,tokenAmount);
-        await musicVault.connect(signer).voteMusic(id,amount);
+        await (await vaultToken.connect(signer).approve(musicVault.address,tokenAmount)).wait();
+        await (await musicVault.connect(signer).voteMusic(id,amount)).wait();
         console.log("vote music");
+        refresh();
     }
 
     const follow = async (author) => {
-        // to comment
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        await window.ethereum.request({ method: "eth_requestAccounts" });
-        signer = provider.getSigner();
-        account = await signer.getAddress();
-        musicVault = getMusicVault(provider);
-
-        await musicVault.connect(signer).followMusician(author);
+        await (await musicVault.connect(signer).followMusician(author)).wait();
         if (instance == undefined){
-            await login({"account":account,"signer":signer});
+            let accForWeb3mq = await signer.getAddress();
+            await login({"account":accForWeb3mq,"signer":signer});
         }
-        const chatid = await musicVault.address2UserMapping(author).chatId;
+
+        const chatid = (await musicVault.address2UserMapping(author)).chatId;
+        console.log(chatid);
         await instance.channel.joinGroup(chatid);
+        refresh();
+    }
+
+    const refresh = () => {
+        console.log("refreshing ...");
+        setTimeout(() => {
+            setRender(1-render);
+        },3000);
     }
 
     return (

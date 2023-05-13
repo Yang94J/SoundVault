@@ -3,51 +3,38 @@ import getMusicVault from "@/libs/musicVault";
 import { ethers } from 'ethers';
 import { IPFS_AUDIOPREFIX } from "@/libs/Ipfs";
 import { useState , useEffect} from 'react';
+import { useAccount,useParticleProvider } from "@particle-network/connect-react-ui";
 
 export default function MusicBox({url}){
 
-    // const account = useAccount();  // get User Info in the hook
-    // let provider = undefined;
-    // let signer = undefined;
-    // let musicVault = undefined;
-    // if (account != undefined && account != ""){
-    //     const web3provider = useParticleProvider();
-    //     provider = new ethers.providers.Web3Provider(web3provider);
-    //     musicVault = getMusicVault(provider);
-    //     signer = provider.getSigner();
-    // }
+    const account = useAccount(); 
+    let provider = undefined;
+    let musicVault = undefined;
+    let vaultToken = undefined;
+    let signer = undefined;
 
-    // useEffect(() => {
-    //     async function fetchDataAsync() {
-    //         if (provider != undefined) {
-    //             await fetchData();
-    //         }
-    //     }
-    //     fetchDataAsync();
-    // }, [account]);
-
-    let account;
-    let provider;
-    let musicVault;
-    let signer;
-
-    const [musicList,setMusicList] = useState([])
+    if (account != undefined && account != ""){
+        const web3provider = useParticleProvider();
+        provider = new ethers.providers.Web3Provider(web3provider);
+        musicVault = getMusicVault(provider);
+        signer = provider.getSigner();
+    }
 
     useEffect(() => {
         async function fetchDataAsync() {
-            console.log("ether ",window.ethereum);
-            provider = new ethers.providers.Web3Provider(window.ethereum);
-            await window.ethereum.request({ method: "eth_requestAccounts" });
-            signer = provider.getSigner();
-            account = await signer.getAddress();
-            musicVault = getMusicVault(provider);
-            await fetchData();
+            if (provider != undefined) {
+                await fetchData();
             }
+        }
         fetchDataAsync();
-    }, []);
+    }, [account]);
+
+    const [musicList,setMusicList] = useState([])
+
+
 
     const fetchData = async function() {
-        console.log("fetching data for user profile")
+        console.log("fetching data for user profile");
         let list;
         console.log(url);
         if (url == "author"){
@@ -68,8 +55,6 @@ export default function MusicBox({url}){
         // add additional logic here
         const changeSongName = musicList[ind].musicName;
         document.getElementById("playmusicName").textContent = "Playing "+changeSongName+" ...";
- 
-
         const cid = musicList[ind].cid;
         console.log(cid);
         const video = document.getElementById("playmusic");

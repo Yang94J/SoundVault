@@ -1,7 +1,7 @@
 import { useAccount,useParticleProvider} from "@particle-network/connect-react-ui";
 import getMusicVault from "@/libs/musicVault";
 import { ethers } from 'ethers';
-
+import getVaultToken from "@/libs/vaultToken";
 import { useState , useEffect} from 'react';
 import StatisticCard from './ui/StatisticCard/StatisticCard';
 import MusicAcheteCards from "./ui/musicAcheteCards/MusicAcheteCards";
@@ -9,61 +9,52 @@ import { instance, login } from "@/libs/web3mq";
 
 export default function CollectionDashboard(){
 
-    // const account = useAccount();  // get User Info in the hook
-
-    // let provider = undefined;
-    // let signer = undefined;
-    // let musicVault = undefined;
-    // if (account != undefined && account != ""){
-    //     const web3provider = useParticleProvider();
-    //     provider = new ethers.providers.Web3Provider(web3provider);
-    //     musicVault = getMusicVault(provider);
-    //     signer = provider.getSigner();
-    // }
-
-    let account;
-    let provider;
-    let musicVault;
-    let vaultToken;
-    let signer;
-
-    // useEffect(() => {
-    //     async function fetchDataAsync() {
-    //         if (provider != undefined) {
-    //             await fetchData();
-    //         }
-    //     }
-    //     fetchDataAsync();
-    // }, [account]);
-
+    const account = useAccount(); 
+    let provider = undefined;
+    let musicVault = undefined;
+    let vaultToken = undefined;
+    let signer = undefined;
 
     const [purchasedNumber, setPurchasedNumber] = useState(-1);
     const [voteAmount, setVoteAmount] = useState(-1);
     const [totalTokenExpenses,setTotalTokenExpenses] = useState(-1);
     const [musicList,setMusicList] = useState([]);
+    const [render,setRender] = useState(0);
 
+    if (account != undefined && account != ""){
+        const web3provider = useParticleProvider();
+        provider = new ethers.providers.Web3Provider(web3provider);
+        musicVault = getMusicVault(provider);
+        vaultToken = getVaultToken(provider);
+        signer = provider.getSigner();
+    }
 
     useEffect(() => {
         async function fetchDataAsync() {
-            console.log("ether ",window.ethereum);
-            provider = new ethers.providers.Web3Provider(window.ethereum);
-            await window.ethereum.request({ method: "eth_requestAccounts" });
-            signer = provider.getSigner();
-            account = await signer.getAddress();
-            musicVault = getMusicVault(provider);
-            await fetchData();
+            if (provider != undefined) {
+                await fetchData();
+            }
+        }
+        fetchDataAsync();
+    }, [account]);
+
+    useEffect(() => {
+        async function fetchDataAsync() {
+                if (provider != undefined) {
+                    await fetchData();
+                }
             }
         fetchDataAsync();
-    }, []);
+    }, [render]);
 
     const fetchData = async function() {
         console.log("fetching data for user profile");
+        console.log(musicVault);
         const user = await musicVault.address2UserMapping(account);
         setPurchasedNumber(user.purchase.toNumber());
         setVoteAmount(user.vote.toNumber());
         setTotalTokenExpenses(ethers.utils.formatUnits(user.totalExpense,"ether"));
         const list = await musicVault.getCollectorMusicIdList(account);
-        console.log(list);
         setMusicList(await Promise.all(list.map(getMusicByIdInDetail)));
     }
 
@@ -113,47 +104,39 @@ export default function CollectionDashboard(){
     }
 
     const purchase = async (id,amount) => {
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        musicVault = getMusicVault(provider);
-        vaultToken = getVaultToken(provider);
-        signer = provider.getSigner();
-
-
         const tokenAmount = (await musicVault.calculatePurchaseFee(id,amount)).toString();
-        await vaultToken.connect(signer).approve(musicVault.address,tokenAmount);
-        await musicVault.connect(signer).purchaseMusic(id,amount);
+        await (await vaultToken.connect(signer).approve(musicVault.address,tokenAmount)).wait();
+        await (await musicVault.connect(signer).purchaseMusic(id,amount)).wait();
         console.log("purchase music");
     }
 
     const vote = async (id,amount) => {
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        musicVault = getMusicVault(provider);
-        vaultToken = getVaultToken(provider);
-        signer = provider.getSigner();
-
-
         const tokenAmount = (await musicVault.calculateVoteFee(amount)).toString();
-        await vaultToken.connect(signer).approve(musicVault.address,tokenAmount);
-        await musicVault.connect(signer).voteMusic(id,amount);
+        await (await vaultToken.connect(signer).approve(musicVault.address,tokenAmount)).wait();
+        await (await musicVault.connect(signer).voteMusic(id,amount)).wait();
         console.log("vote music");
+        refresh();
     }
 
     const follow = async (author) => {
-
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        await window.ethereum.request({ method: "eth_requestAccounts" });
-        signer = provider.getSigner();
-        account = await signer.getAddress();
-        musicVault = getMusicVault(provider);
-
         await musicVault.connect(signer).followMusician(author);
         if (instance == undefined){
-            await login({"account":account,"signer":signer});
+            let accForWeb3mq = await signer.getAddress();
+            await login({"account":accForWeb3mq,"signer":signer});
         }
         const chatid = (await musicVault.address2UserMapping(author)).chatId;
         console.log(chatid);
         await instance.channel.joinGroup(chatid);
+        refresh();
     }
+
+    const refresh = () => {
+        console.log("refreshing ...");
+        setTimeout(() => {
+            setRender(1-render);
+        },3000);
+    }
+
 
     return(
         <div className="max-w-6xl mx-auto py-8 sm:py-12 px-2 sm:px-6 lg:px-8 h-full">
@@ -168,7 +151,7 @@ export default function CollectionDashboard(){
                                     }} />
                 <StatisticCard data={{
                                         "name":"Votes",
-                                        "description":"The toal number of votes for music purchased",
+                                        "description":"The toal number of votes for music collected",
                                         "number":voteAmount
                                     }} />
                 <StatisticCard data={{

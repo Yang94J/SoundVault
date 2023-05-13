@@ -4,13 +4,11 @@ import { useState , useEffect} from 'react';
 
 export default function DialogWindow({list,cbs}) {
 
-    console.log(list);
-
     const sendMsg = async () => {
         const msg = document.getElementById("userinput").value;
         document.getElementById("userinput").value="";
         await cbs.sendMsg(msg);
-    } 
+    }
 
     return (
         <div className='relative flex h-full max-w-full flex-1 overflow-y-auto '>
@@ -19,7 +17,7 @@ export default function DialogWindow({list,cbs}) {
                     <div className='flex-1 overflow-hidden overflow-y-auto '>
                         <div className='h-full dark:bg-gray-800'> 
                         <div className=''>
-                        <div className='flex flex-col items-center text-sm dark:bg-gray-800 h=[650px]'>
+                        <div className='flex flex-col items-center text-sm dark:bg-gray-800 min-h-[650px] max-h-[650px]'>
                             {
                                 list.map((chat) => {
                                     return (

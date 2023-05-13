@@ -8,6 +8,7 @@ export default function Chatbar({list,cbs}) {
         cbs.clickChat(ind);
     }
 
+
     return (
 
             <div className="dark flex-shrink-0 overflow-x-hidden bg-black">

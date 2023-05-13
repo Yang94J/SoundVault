@@ -141,6 +141,8 @@ contract ContentVault is UserVault{
         collector2MusicIdMapping[msg.sender].push(musicId);
         musicId2CollectorAmountMapping[musicId][msg.sender] = 1;
         musicId2CollectorVoteAmountMapping[musicId][msg.sender] = 1;
+        address2UserMapping[msg.sender].purchase +=  1;
+        address2UserMapping[msg.sender].vote +=  1;
 
         contentUploadedMapping[cid] =  true;
 

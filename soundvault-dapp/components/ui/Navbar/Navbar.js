@@ -25,20 +25,16 @@ const Navbar = () => {
               <Link href="/" className={s.link}>
                 DashBoard
               </Link>
-              {/* <Link href="/author" className={login ? s.link : `${s.link} invisible`}> */}
-              <Link href="/author" className={s.link} >
+              <Link href="/author" className={login ? s.link : `${s.link} invisible`}>
                 Author
               </Link>
-              {/* <Link href="/author" className={login ? s.link : `${s.link} invisible`}> */}
-              <Link href="/explore" className={s.link} >
+              <Link href="/explore" className={login ? s.link : `${s.link} invisible`}>
                 Explore
               </Link>
-              {/* <Link href="/author" className={login ? s.link : `${s.link} invisible`}> */}
-              <Link href="/collections" className={s.link} >
+              <Link href="/collections" className={login ? s.link : `${s.link} invisible`}>
                 Collections
               </Link>
-              {/* <Link href="/author" className={login ? s.link : `${s.link} invisible`}> */}
-              <Link href="/fanclub" className={s.link} >
+              <Link href="/fanclub" className={login ? s.link : `${s.link} invisible`}>
                 Fanclub
               </Link>              
             </nav>

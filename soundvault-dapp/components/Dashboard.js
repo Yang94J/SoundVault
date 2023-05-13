@@ -8,47 +8,31 @@ import StatisticCard from './ui/StatisticCard/StatisticCard';
 export default function Dashboard(){
 
     // Comment for test use
-    // const account = useAccount();  // get User Info in the hook
-    // let provider = undefined;
-    // let musicVault = undefined;
-    // if (account != undefined && account != ""){
-    //     const web3provider = useParticleProvider();
-    //     provider = new ethers.providers.Web3Provider(web3provider);
-    //     musicVault = getMusicVault(provider);
-    // }
+    const account = useAccount(); 
+    let provider = undefined;
+    let musicVault = undefined;
+    let signer = undefined;
 
-    let account;
-    let provider;
-    let musicVault;
-    let signer;
+    if (account != undefined && account != ""){
+        const web3provider = useParticleProvider();
+        provider = new ethers.providers.Web3Provider(web3provider);
+        signer = provider.getSigner();
+        musicVault = getMusicVault(provider);
+    }
 
     const [musicNumber, setMusicNumber] = useState(-1);
     const [userNumber, setUserNumber] = useState(-1);
     const [purchases, setPurchases] = useState(-1);
     const [purchaseAmount, setPurchaseAmount] = useState(-1);
 
-    // useEffect(() => {
-    //     async function fetchDataAsync() {
-    //         if (provider != undefined) {
-    //             await fetchData();
-    //         }
-    //     }
-    //     fetchDataAsync();
-    // }, [account]);
-
     useEffect(() => {
         async function fetchDataAsync() {
-            console.log("ether ",window.ethereum);
-            provider = new ethers.providers.Web3Provider(window.ethereum);
-            await window.ethereum.request({ method: "eth_requestAccounts" });
-            signer = provider.getSigner();
-            account = await signer.getAddress();
-            musicVault = getMusicVault(provider);
-            console.log(account);
-            await fetchData();
+            if (provider != undefined) {
+                await fetchData();
             }
+        }
         fetchDataAsync();
-    }, []);
+    }, [account]);
 
     const fetchData = async function () {
         console.log("fetching data from blockchain");
@@ -56,7 +40,6 @@ export default function Dashboard(){
         setUserNumber((await musicVault.userNumber()).toNumber());
         setPurchases((await musicVault.purchaseNumer()).toNumber()); //@todo
         setPurchaseAmount(ethers.utils.formatUnits(await musicVault.purchaseTokenAmount(),"ether"));
-        console.log("fetching complete");
     };
 
 

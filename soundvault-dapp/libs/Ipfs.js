@@ -17,10 +17,12 @@ const uploadJson = async function(data) {
             },
         }
     )).data;
+    
 
     const resp = {
         "cid" : res.cid,
         "ipfs" : res.ipfs,
+        "url" : res.ipfsUrl,
     };
 
     return resp;
@@ -44,21 +46,13 @@ const uploadFile = async function(file){
 
     res = res.data;
 
-    console.log(res);
-
     const resp = {
         "cid" : res.cid,
         "ipfs" : res.ipfs,
-        "hash" : getHashInt(res.cid),
+        "url" : res.ipfsUrl,
     };
 
     return resp;
-}
-
-const getHashInt = function(cid) {
-    const hash = ethers.utils.hashMessage(cid);
-    const num = parseInt(hash.slice(2, 18), 16);
-    return num.toString();
 }
 
 export { uploadJson, uploadFile,IPFS_AUDIOPREFIX };

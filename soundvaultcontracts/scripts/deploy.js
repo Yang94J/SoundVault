@@ -1,6 +1,6 @@
 const path = require("path");
 
-const FANNFT_TOKENURI = "tokenURL";
+const FANNFT_TOKENURI = "ipfs://bafybeigecfa5qopre7crfpa24ppasjvtlgbayxww37e2w3b342zz4gl46u/music.jpg";
 
 const VAULT_TOKEN_SUPPLY = 10_000;
 const VAULT_TOKEN_NAME = "vaultToken";
@@ -62,11 +62,21 @@ async function main() {
   await vaultToken.connect(owner).transfer(alice.address, BigInt(VAULT_TOKEN_ALICE_INIT * (10 ** VAULT_TOKEN_DECIMALS)));
   await vaultToken.connect(owner).transfer(bob.address, BigInt(VAULT_TOKEN_BOB_INIT * (10 ** VAULT_TOKEN_DECIMALS)));
   await vaultToken.connect(owner).transfer(jack.address, BigInt(VAULT_TOKEN_JACK_INIT * (10 ** VAULT_TOKEN_DECIMALS)));
+  
+  // Could be commented.
+  // await vaultToken.connect(owner).approve(musicVault.address, ethers.constants.MaxUint256);
+  // await vaultToken.connect(alice).approve(musicVault.address, ethers.constants.MaxUint256);
+  // await vaultToken.connect(bob).approve(musicVault.address, ethers.constants.MaxUint256);
+  // await vaultToken.connect(jack).approve(musicVault.address, ethers.constants.MaxUint256);
 
-  await vaultToken.connect(owner).approve(musicVault.address, ethers.constants.MaxUint256);
-  await vaultToken.connect(alice).approve(musicVault.address, ethers.constants.MaxUint256);
-  await vaultToken.connect(bob).approve(musicVault.address, ethers.constants.MaxUint256);
-  await vaultToken.connect(jack).approve(musicVault.address, ethers.constants.MaxUint256);
+  // transfer 0.2 eth to wallets for start
+  for (const user of [alice,bob,jack]){
+    console.log(user.address);
+    await owner.sendTransaction({
+      to: user.address,
+      value : ethers.utils.parseEther("0.2")
+    })
+  }
 
 }
 

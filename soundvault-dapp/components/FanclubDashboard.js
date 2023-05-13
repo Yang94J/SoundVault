@@ -3,44 +3,51 @@ import DialogWindow from "./ui/DialogWindow/DialogWindow";
 import { login, instance } from "@/libs/web3mq";
 import { useState , useEffect} from 'react';
 import { ethers } from "ethers";
+import { useAccount, useParticleProvider } from "@particle-network/connect-react-ui";
 
 
 
 export default function FanclubDashboard(){
+  const account = useAccount(); 
+  let provider = undefined;
+  let signer = undefined;
+
+  if (account != undefined && account != ""){
+    const web3provider = useParticleProvider();
+    provider = new ethers.providers.Web3Provider(web3provider);
+    signer = provider.getSigner();
+  }
 
   const [channelList,setChannelList] = useState([]);
   const [msgList,setMsgList] = useState([]);
 
   useEffect(() => {
     async function fetchDataAsync() {
+      if (provider != undefined) {
 
-      let provider = new ethers.providers.Web3Provider(window.ethereum);
-      await window.ethereum.request({ method: "eth_requestAccounts" });
-      let signer = provider.getSigner();
-      let account = await signer.getAddress();
-
-
-      if (instance == undefined){
-        await login({"account":account,"signer":signer});
+        if (instance == undefined){
+          console.log("trying to get from init");
+          let accForWeb3mq = await signer.getAddress();
+          await login({"account":accForWeb3mq,"signer":signer});
+        }
+  
+        instance.on('channel.getList', listenEvent);
+        instance.on('channel.activeChange',listenEvent);
+        instance.on('message.delivered',listenEvent);
+        instance.on('channel.updated',listenEvent);
+        instance.on('message.getList',listenEvent);
+  
+        await instance.channel.queryChannels({
+          page: 1,
+          size: 20
+        });
       }
-
-      console.log("fetchData");
-
-      instance.on('channel.getList', listenEvent);
-      instance.on('channel.activeChange',listenEvent);
-      instance.on('message.delivered',listenEvent);
-      instance.on('channel.updated',listenEvent);
-      instance.on('message.getList',listenEvent);
-
-      await instance.channel.queryChannels({
-      });
     }
     fetchDataAsync();
-  }, []);
+  }, [account]);
 
 
   const listenEvent = (props) => {
-    console.log(event)
     if (props.type === 'channel.getList') {
         const { channelList, activeChannel } = instance.channel;
         console.log('your channel list:', channelList)

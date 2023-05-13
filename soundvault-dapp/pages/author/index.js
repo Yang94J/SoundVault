@@ -1,8 +1,10 @@
 import Layout from "@/components/Layout"
 import Profile from "@/components/AuthorDashboard"
 import MusicBox from "@/components/MusicBox"
+import { useState } from "react"
 
 export default function Author() {
+
 
   return (
     <Layout>
