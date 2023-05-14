@@ -10,7 +10,7 @@ MusicVault is not just a platform that covers the entire lifecycle of music, it 
 
 The demonstration video can be found in the link below
 
-- <a href="./musicvault-demo-clip.mp4">Brief Demo (3 min)</a>
+- <a href="./musicvault-demo-clip.mp4">Brief Demo (3 min)</a> or <a href="https://youtu.be/qXYy_DpK3JI">Online link </a>
 - <a href="musicVault.mp4">Demonstration Video (12 min)</a>
 
 **The project is registered on Track SocialF(For the social interactions and financing), and Infra & Scalability, and bounties of Web3MQ and Particle Network are applied.Check the following introduction for more details if needed.**
