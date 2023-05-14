@@ -8,6 +8,11 @@ MusicVault is a revolutionary platform that breaks down the barriers between Web
 
 MusicVault is not just a platform that covers the entire lifecycle of music, it is also a decentralized one. Through the use of **IPFS, Particle Network and Web3MQ** technology, MusicVault has achieved **maximum data decentralization and privacy** while maintaining a Web2 user experience. In addition, anonymity is also preserved on the platform.
 
+The demonstration video can be found in the link below
+
+- <a href="./musicvault-demo-clip.mp4">Brief Demo (3 min)</a>
+- <a href="musicVault.mp4">Demonstration Video (12 min)</a>
+
 **The project is registered on Track SocialF(For the social interactions and financing), and Infra & Scalability, and bounties of Web3MQ and Particle Network are applied.Check the following introduction for more details if needed.**
 
 - [Contract Introduction](soundvaultcontracts/README.md)
